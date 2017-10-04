@@ -1,20 +1,18 @@
 
-//#[derive(Clone)]
 pub struct Blockchain {
     chain: Vec<u8>,
     current_transactions: Vec<u8>
 }
 
 impl Blockchain {
-
     pub fn new() -> Blockchain {
-        Blockchain{
+        Blockchain {
             chain: Vec::new(),
             current_transactions: Vec::new()
         }
     }
-
-pub fn new_block(&mut self) -> String {
+    
+    pub fn new_block(&mut self) -> String {
         self.chain.push(1);
         format!("New block {} #{}", "yes", self.chain.len())
     }

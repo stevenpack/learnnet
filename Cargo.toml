@@ -1,9 +1,8 @@
 [package]
 name = "learnnet"
 version = "0.1.0"
-authors = ["stevenpack <steven_john_pack@yahoo.com.au>"]
+authors = ["stevenpack <steven.pack.code@gmail.com>"]
 
 [dependencies]
 rocket = "0.3.3"
 rocket_codegen = "0.3.3"
-lazy_static = "0.2.9"
