@@ -19,15 +19,16 @@ impl BlockchainState {
 //todo: post
 #[get("/new-block")]
 pub fn new_block(state: State<BlockchainState>) -> Result<String, u32> {
-    //let mut blockchain = state.blockchain.write().expect("Unable to get write lock");    
-    // let guard = state.blockchain.write();
-    // if guard.is_ok() {
-    //     return Ok(guard.unwrap().new_block())
-    // }
-    return x(&state, |b| b.new_block() );
+    return blockchain_op(&state, |b| b.new_block());
 }
 
-fn x<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<String, u32> 
+//todo: post
+#[get("/new-transaction")]
+pub fn new_transaction(state: State<BlockchainState>) -> Result<String, u32> {
+    return blockchain_op(&state, |b| b.new_transaction())
+}
+
+fn blockchain_op<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<String, u32> 
     where F: Fn(&mut Blockchain) -> String {
     let guard = state.blockchain.write();
     if guard.is_ok() {        
@@ -38,8 +39,4 @@ fn x<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<String, u32>
     Err(500)
 }
 
-//todo: post
-#[get("/new-transaction")]
-pub fn new_transaction(state: State<BlockchainState>) -> String {
-    state.blockchain.write().unwrap().new_transaction()
-}
+

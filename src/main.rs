@@ -9,5 +9,10 @@ fn main() {
     let config = web::BlockchainState::new(); 
     rocket::ignite()
     .manage(config)
-    .mount("/", routes![web::new_block, web::new_transaction]).launch();
+    .mount("/", routes![
+    
+        web::new_block, 
+        web::new_transaction
+        
+    ]).launch();
 }
