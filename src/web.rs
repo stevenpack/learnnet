@@ -24,10 +24,10 @@ pub fn new_block(state: State<BlockchainState>) -> Result<String, u32> {
     // if guard.is_ok() {
     //     return Ok(guard.unwrap().new_block())
     // }
-    return x(&state,  &mut |b| b.new_block() );
+    return x(&state, |b| b.new_block() );
 }
 
-fn x<F>(state: &State<BlockchainState>, blockchain_op: &mut F) -> Result<String, u32> 
+fn x<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<String, u32> 
     where F: Fn(&mut Blockchain) -> String {
     let guard = state.blockchain.write();
     if guard.is_ok() {        
