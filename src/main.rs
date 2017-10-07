@@ -2,6 +2,13 @@
 #![plugin(rocket_codegen)]
 extern crate rocket;
 
+#[macro_use]
+extern crate serde_derive;
+extern crate chrono;
+extern crate serde;
+extern crate serde_json;
+
+
 mod blockchain;
 mod web;
 

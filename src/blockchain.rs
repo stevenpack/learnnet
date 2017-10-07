@@ -1,31 +1,52 @@
-extern crate chrono;
 
+use serde_json;
+use chrono;
+
+use std::cmp::Ord;
+use std::cmp::Ordering;
+
+use std::collections::BTreeSet;
 use std::collections::HashSet;
-use self::chrono::DateTime;
 use self::chrono::offset::Utc;
 
 type Address = String;
 type Amount = i64;
 
 pub struct Blockchain {
-    chain: Vec<Block>,
-    current_transactions: Vec<Transaction>,
+    chain: BTreeSet<Block>,
+    current_transactions: BTreeSet<Transaction>,
     nodes: HashSet<String>
 }
 
+#[derive(Serialize)]
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Transaction {
     sender: Address,
     recipient: Address,
     amount: Amount
 }
 
+#[derive(Serialize)]
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Block {
     index: usize,
     timestamp: i64,
     proof: i64,
     previous_hash: String,
-    transactions: Vec<Transaction>
+    transactions: BTreeSet<Transaction>
 }
+
+// impl Ord for Block {
+//     fn cmp(&self, other: &Block) -> Ordering {
+//         self.index.cmp(&other.index)
+//     }
+// }
+
+// impl PartialEq for Block {
+//     fn eq(&self, other: &Block) -> bool {
+//         self.index == other.index
+//     }
+// }
 
 impl Transaction {
     pub fn new(sender: Address, recipient: Address, amount: Amount) -> Transaction {
@@ -40,8 +61,8 @@ impl Transaction {
 impl Blockchain {
     pub fn new() -> Blockchain {
         let mut blockchain = Blockchain {
-            chain: Vec::new(),
-            current_transactions: Vec::new(),
+            chain: BTreeSet::new(),
+            current_transactions: BTreeSet::new(),
             nodes: HashSet::new()
         };
         //todo: how to do genesis?
@@ -56,7 +77,7 @@ impl Blockchain {
             timestamp: Utc::now().timestamp(),
             proof: proof,
             previous_hash: previous_hash, //or self.hash(self.chain[-1]),
-            transactions: Vec::new()
+            transactions: BTreeSet::new()
         }
     }
 
@@ -67,20 +88,30 @@ impl Blockchain {
 
         let block = self.create_block(proof, previous_hash);
 
-        self.current_transactions = Vec::new();
-        self.chain.push(block);
-        &self.chain.last().expect("Just added element")
+        self.current_transactions = BTreeSet::new();
+        self.chain.insert(block);
+        &self.chain.iter().next_back().expect("Just added element")
     }
 
     pub fn new_transaction(&mut self, sender: Address, recipient: Address, amount: Amount) -> usize {        
         let txn = Transaction::new(sender, recipient, amount);        
-        self.current_transactions.push(txn);
+        self.current_transactions.insert(txn);
         self.last_block().index
     }
 
     pub fn last_block(&self) -> &Block {
-        self.chain.last().expect("chain empty")
+        //for set, it's self.chain.iter().next_back()
+        //it's a double-ended iterator, and it's sorted, so it should be fast
+        self.chain.iter().next_back().expect("chain empty. expected genesis block")
     }
+
+    pub fn hash(&self, block: &Block) -> String {
+        //let j = serde_json::to_string(block)?;
+        let j = serde_json::to_string(block);
+        println!("{:?}", j);
+        String::from("a")
+    }
+
 }
 
 #[cfg(test)]
@@ -92,7 +123,7 @@ mod tests {
     fn new_transaction() {
         let mut blockchain = Blockchain::new();
         let idx = blockchain.new_transaction(String::from("a"), String::from("b"), 100);
-        let last_txn = blockchain.current_transactions.last().expect("expected a txn");
+        let last_txn = blockchain.current_transactions.iter().next_back().expect("expected a txn");
         assert_eq!(last_txn.sender, String::from("a"));
         assert_eq!(last_txn.recipient, String::from("b"));
         assert_eq!(last_txn.amount, 100);
@@ -113,7 +144,15 @@ mod tests {
     
     }
 
-    //fn x(b: &Blockchain)
+    
+     #[test]
+    fn hash() {
+        let mut blockchain = Blockchain::new();       
+        blockchain.new_block(2, String::from("abc"));
+        let block = blockchain.last_block();
+        let hash = blockchain.hash(block);
+        println!("{:?}", hash);
+    }
 }
 
 // import hashlib
