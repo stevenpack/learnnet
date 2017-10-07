@@ -97,6 +97,23 @@ mod tests {
         assert_eq!(last_txn.recipient, String::from("b"));
         assert_eq!(last_txn.amount, 100);
     }
+
+     #[test]
+    fn new_block() {
+        let mut blockchain = Blockchain::new();
+        blockchain.new_transaction(String::from("a"), String::from("b"), 100);
+        
+        let a = blockchain.current_transactions.len();
+        assert_eq!(1, a , "1 transaction");
+    
+        blockchain.new_block(2, String::from("abc"));
+                 
+        let b = blockchain.current_transactions.len();
+        assert_eq!(0, b, "New block should clear transactions (which were on the previous block");
+    
+    }
+
+    //fn x(b: &Blockchain)
 }
 
 // import hashlib
