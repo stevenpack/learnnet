@@ -1,25 +1,73 @@
+use std::collections::HashSet;
+
+type Address = String;
+type Amount = i64;
 
 pub struct Blockchain {
-    chain: Vec<u8>,
-    current_transactions: Vec<u8>
+    chain: Vec<Block>,
+    current_transactions: Vec<Transaction>,
+    nodes: HashSet<String>
+}
+
+pub struct Transaction {
+    sender: Address,
+    recipient: Address,
+    amount: Amount
+}
+
+pub struct Block {
+    index: usize,
+    timestamp: f64,
+    proof: i64,
+    previous_hash: String,
+    transactions: Vec<Transaction>
+}
+
+impl Transaction {
+    pub fn new(sender: Address, recipient: Address, amount: Amount) -> Transaction {
+        Transaction {
+            sender: sender,
+            recipient: recipient,
+            amount: amount
+        }
+    }
 }
 
 impl Blockchain {
     pub fn new() -> Blockchain {
         Blockchain {
             chain: Vec::new(),
-            current_transactions: Vec::new()
+            current_transactions: Vec::new(),
+            nodes: HashSet::new()
         }
     }
     
     pub fn new_block(&mut self) -> String {
-        self.chain.push(1);
+        //self.chain.push(1);
         format!("New block {} #{}", "yes", self.chain.len())
     }
 
-    pub fn new_transaction(&mut self) -> String {
-        self.current_transactions.push(1);
-        format!("New transactions {} #{}", "yes", self.current_transactions.len())
+    pub fn new_transaction(&mut self, sender: Address, recipient: Address, amount: Amount) -> usize {        
+        let txn = Transaction::new(sender, recipient, amount);        
+        self.current_transactions.push(txn);
+        self.last_block().index
+    }
+
+    pub fn last_block(&self) -> &Block {
+        self.chain.last().expect("chain empty")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+    use blockchain::Blockchain;
+
+    #[test]
+    fn new_transaction() {
+        let mut blockchain = Blockchain::new();
+        let idx = blockchain.new_transaction(String::from("a"), String::from("b"), 100);
+        let last_txn = blockchain.current_transactions.last().expect("expected a txn");
     }
 }
 

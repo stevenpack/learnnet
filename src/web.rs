@@ -25,7 +25,10 @@ pub fn new_block(state: State<BlockchainState>) -> Result<String, u32> {
 //todo: post
 #[get("/new-transaction")]
 pub fn new_transaction(state: State<BlockchainState>) -> Result<String, u32> {
-    return blockchain_op(&state, |b| b.new_transaction())
+    return blockchain_op(&state, |b| {
+         let num = b.new_transaction("a".to_string(), "b".to_string(), 1);
+         return "all good".to_string();
+    })
 }
 
 fn blockchain_op<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<String, u32> 

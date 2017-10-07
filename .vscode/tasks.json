@@ -23,5 +23,18 @@
                 "isDefault": true
             }
         }
+        // {
+        //     "type": "shell",
+        //     "taskName": "cargo test",
+        //     "command": "cargo test -- --nocapture",
+        //     "args": [],
+        //     "problemMatcher": [
+        //         "$rustc"
+        //     ],
+        //     "group": {
+        //         "kind": "test",
+        //         "isDefault": true
+        //     }
+        // }
     ]
 }
