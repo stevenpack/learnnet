@@ -19,7 +19,10 @@ impl BlockchainState {
 //todo: post
 #[get("/new-block")]
 pub fn new_block(state: State<BlockchainState>) -> Result<String, u32> {
-    return blockchain_op(&state, |b| b.new_block());
+    return blockchain_op(&state, |b|{
+         
+         return "all good".to_string();
+    });
 }
 
 //todo: post

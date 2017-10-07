@@ -1,4 +1,8 @@
+extern crate chrono;
+
 use std::collections::HashSet;
+use self::chrono::DateTime;
+use self::chrono::offset::Utc;
 
 type Address = String;
 type Amount = i64;
@@ -17,7 +21,7 @@ pub struct Transaction {
 
 pub struct Block {
     index: usize,
-    timestamp: f64,
+    timestamp: i64,
     proof: i64,
     previous_hash: String,
     transactions: Vec<Transaction>
@@ -35,16 +39,37 @@ impl Transaction {
 
 impl Blockchain {
     pub fn new() -> Blockchain {
-        Blockchain {
+        let mut blockchain = Blockchain {
             chain: Vec::new(),
             current_transactions: Vec::new(),
             nodes: HashSet::new()
-        }
+        };
+        //todo: how to do genesis?
+        blockchain.new_block(100, String::from("some hash..."));
+        blockchain
     }
     
-    pub fn new_block(&mut self) -> String {
-        //self.chain.push(1);
-        format!("New block {} #{}", "yes", self.chain.len())
+      
+    fn create_block(&self, proof: i64, previous_hash: String) -> Block {
+        Block {
+            index: self.chain.len() + 1,
+            timestamp: Utc::now().timestamp(),
+            proof: proof,
+            previous_hash: previous_hash, //or self.hash(self.chain[-1]),
+            transactions: Vec::new()
+        }
+    }
+
+    ///
+    ///Create a new Block 
+    ///
+    pub fn new_block(&mut self, proof: i64, previous_hash: String) -> &Block {
+
+        let block = self.create_block(proof, previous_hash);
+
+        self.current_transactions = Vec::new();
+        self.chain.push(block);
+        &self.chain.last().expect("Just added element")
     }
 
     pub fn new_transaction(&mut self, sender: Address, recipient: Address, amount: Amount) -> usize {        
@@ -68,31 +93,11 @@ mod tests {
         let mut blockchain = Blockchain::new();
         let idx = blockchain.new_transaction(String::from("a"), String::from("b"), 100);
         let last_txn = blockchain.current_transactions.last().expect("expected a txn");
+        assert_eq!(last_txn.sender, String::from("a"));
+        assert_eq!(last_txn.recipient, String::from("b"));
+        assert_eq!(last_txn.amount, 100);
     }
 }
-
-// class Blockchain(object):
-//     def __init__(self):
-//         self.chain = []
-//         self.current_transactions = []
-        
-//     def new_block(self):
-//         # Creates a new Block and adds it to the chain
-//         pass
-    
-//     def new_transaction(self):
-//         # Adds a new transaction to the list of transactions
-//         pass
-    
-//     @staticmethod
-//     def hash(block):
-//         # Hashes a Block
-//         pass
-
-//     @property
-//     def last_block(self):
-//         # Returns the last Block in the chain
-//         pass
 
 // import hashlib
 // import json
