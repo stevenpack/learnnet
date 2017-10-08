@@ -18,7 +18,7 @@ mod blockchain;
 mod web;
 
 fn main() {
-    env_logger::init();
+    env_logger::init().unwrap_or_else(|e| println!("Failed to init env_logger. {}", e));
     debug!("Started");
 
     let config = web::BlockchainState::new(); 

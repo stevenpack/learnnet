@@ -42,18 +42,6 @@ pub struct Block {
     transactions: BTreeSet<Transaction>
 }
 
-// impl Ord for Block {
-//     fn cmp(&self, other: &Block) -> Ordering {
-//         self.index.cmp(&other.index)
-//     }
-// }
-
-// impl PartialEq for Block {
-//     fn eq(&self, other: &Block) -> bool {
-//         self.index == other.index
-//     }
-// }
-
 impl Transaction {
     pub fn new(sender: Address, recipient: Address, amount: Amount) -> Transaction {
         Transaction {
@@ -111,8 +99,32 @@ impl Blockchain {
         self.chain.iter().next_back().expect("chain empty. expected genesis block")
     }
 
-    pub fn hash(&self, block: &Block) -> Result<String, String> {
+    pub fn hash(block: &Block) -> Result<String, String> {
        hasher::hash(block)
+    }
+
+    ///
+    ///Simple Proof of Work Algorithm:
+    ///          - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
+    ///          - p is the previous proof, and p' is the new proof
+    fn proof_of_work(&self, last_proof: u64) -> u64 {
+        let mut proof = 0;
+        while !Self::valid_proof(last_proof, proof) {
+             proof += 1
+        }
+        println!("Took {} iterations",proof);
+        return proof
+    }
+
+    /// Validates the Proof
+    /// i.e. does the hash of last_proof and this proof end in 000?
+    fn valid_proof(last_proof: u64, proof: u64) -> bool {
+        
+        let guess = format!("{}{}", last_proof,proof);
+        let guess_hash =  hasher::hash_string(guess);
+        //todo: make trace!
+        //println!("guess_hash:{}", guess_hash);
+        guess_hash.starts_with("000")
     }
 }
 
@@ -145,18 +157,33 @@ mod tests {
         assert_eq!(0, b, "New block should clear transactions (which were on the previous block");
     
     }
-
     
      #[test]
     fn hash() {
         let mut blockchain = Blockchain::new();       
         blockchain.new_block(2, String::from("abc"));
         let block = blockchain.last_block();
-        let hash = blockchain.hash(block);
+        let hash = Blockchain::hash(block);
         println!("{:?}", hash);
         assert!(hash.is_ok());
         assert!(hash.unwrap().len() > 10, "expected a longer hash");       
     }
+
+    #[test]
+    fn valid_proof_false() {
+        let mut blockchain = Blockchain::new();     
+        assert_eq!(Blockchain::valid_proof(1,1), false);
+    }
+    
+    #[test]
+    fn proof_of_work() {
+        let mut blockchain = Blockchain::new();     
+        let proof = blockchain.proof_of_work(1);
+        println!("Proof of work: {}", proof);
+        assert!(proof > 1, "expected a higher proof");
+        assert!(Blockchain::valid_proof(1, proof));
+    }
+  
 }
 
 // import hashlib
