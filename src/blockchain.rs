@@ -5,9 +5,6 @@ use chrono;
 // use std::cmp::Ordering;
 use hasher;
 
-use serde_json;
-
-use std::error::Error;
 use std::collections::BTreeSet;
 use std::collections::HashSet;
 use self::chrono::offset::Utc;
