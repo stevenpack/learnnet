@@ -13,7 +13,6 @@ extern crate env_logger;
 extern crate sha2;
 extern crate base64;
 
-mod hasher;
 mod lib;
 mod web;
 

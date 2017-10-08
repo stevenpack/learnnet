@@ -1,7 +1,7 @@
 
 use chrono;
-use hasher;
 
+use lib::hasher::*;
 use lib::transaction::Transaction;
 use std::collections::BTreeSet;
 use std::collections::HashSet;
@@ -70,7 +70,7 @@ impl Blockchain {
     }
 
     pub fn hash(block: &Block) -> Result<String, String> {
-       hasher::hash(block)
+       self::hash(block)
     }
 
     ///
@@ -91,7 +91,7 @@ impl Blockchain {
     fn valid_proof(last_proof: u64, proof: u64) -> bool {
         
         let guess = format!("{}{}", last_proof,proof);
-        let guess_hash =  hasher::hash_string(guess);
+        let guess_hash =  self::hash_string(guess);
         let is_valid = guess_hash.starts_with("000");
         if is_valid {
             debug!("guess_hash: {}", guess_hash);
