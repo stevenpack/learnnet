@@ -1,8 +1,5 @@
 
 use chrono;
-
-// use std::cmp::Ord;
-// use std::cmp::Ordering;
 use hasher;
 
 use std::collections::BTreeSet;
@@ -20,12 +17,13 @@ pub struct Blockchain {
 }
 
 #[derive(Debug)]
-#[derive(Serialize)]
+#[derive(Clone)]
+#[derive(Serialize, Deserialize)]
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Transaction {
-    sender: Address,
-    recipient: Address,
-    amount: Amount
+    pub sender: Address,
+    pub recipient: Address,
+    pub amount: Amount
 }
 
 #[derive(Debug)]
@@ -56,14 +54,14 @@ impl Blockchain {
             current_transactions: BTreeSet::new(),
             nodes: HashSet::new()
         };
-        //todo: how to do genesis?
-        blockchain.new_block(100, String::from("some hash..."));
+        blockchain.new_block(100, String::from("Genesis block."));
         blockchain
     }
     
       
     fn create_block(&mut self, proof: u64, previous_hash: String) -> Block {
-        //Clear the old transactions and add the current ones to the new block
+        //Current transactions get moved to this block and are cleared to start
+        //collecting the next block's transactions
         let mut txns = BTreeSet::new();
         txns.append(&mut self.current_transactions);
         Block {
@@ -84,16 +82,14 @@ impl Blockchain {
         &self.chain.iter().next_back().expect("Just added element")
     }
 
-    pub fn new_transaction(&mut self, sender: Address, recipient: Address, amount: Amount) -> usize {        
-        let txn = Transaction::new(sender, recipient, amount);        
-        self.current_transactions.insert(txn);
+    pub fn new_transaction(&mut self, transaction: Transaction) -> usize {        
+        self.current_transactions.insert(transaction);
         self.last_block().index
     }
 
     pub fn last_block(&self) -> &Block {
-        //for set, it's self.chain.iter().next_back()
         //it's a double-ended iterator, and it's sorted, so it should be fast
-        self.chain.iter().next_back().expect("chain empty. expected genesis block")
+        self.chain.iter().next_back().expect("Chain empty. Expected genesis block")
     }
 
     pub fn hash(block: &Block) -> Result<String, String> {
@@ -109,7 +105,7 @@ impl Blockchain {
         while !Self::valid_proof(last_proof, proof) {
              proof += 1
         }
-        println!("Took {} iterations",proof);
+        debug!("Took {} iterations",proof);
         return proof
     }
 
@@ -119,8 +115,6 @@ impl Blockchain {
         
         let guess = format!("{}{}", last_proof,proof);
         let guess_hash =  hasher::hash_string(guess);
-        //todo: make trace!
-        //println!("guess_hash:{}", guess_hash);
         let is_valid = guess_hash.starts_with("000");
         if is_valid {
             debug!("guess_hash: {}", guess_hash);
@@ -137,6 +131,7 @@ impl Blockchain {
 
     fn hash_last_block(&self) -> String {
         let last_block = self.last_block();
+        //TODO: Don't panic here
         Self::hash(last_block).expect("hash block failed")
     }
 
@@ -145,7 +140,7 @@ impl Blockchain {
         let new_block_proof = self.new_block_proof();
         //Got it. Give ourselves the new coin (block?)
         //The sender is "0" to signify that this node has mined a new coin.
-        self.new_transaction(String::from("0"), String::from("todo: node identifier"), 1);
+        self.new_transaction(Transaction::new("0".into(), "my node address".into(), 1));
         let previous_hash = self.hash_last_block();
         //Forge the new Block by adding it to the chain
         let mined_block = self.new_block(new_block_proof, previous_hash);
