@@ -124,7 +124,11 @@ impl Blockchain {
         let guess_hash =  hasher::hash_string(guess);
         //todo: make trace!
         //println!("guess_hash:{}", guess_hash);
-        guess_hash.starts_with("000")
+        let is_valid = guess_hash.starts_with("000");
+        if is_valid {
+            debug!("guess_hash: {}", guess_hash);
+        }
+        is_valid
     }
 }
 
@@ -158,15 +162,17 @@ mod tests {
     
     }
     
-     #[test]
+    #[test]
     fn hash() {
         let mut blockchain = Blockchain::new();       
         blockchain.new_block(2, String::from("abc"));
         let block = blockchain.last_block();
         let hash = Blockchain::hash(block);
+        let hash2 = Blockchain::hash(block);
         println!("{:?}", hash);
         assert!(hash.is_ok());
-        assert!(hash.unwrap().len() > 10, "expected a longer hash");       
+        assert_eq!(hash.unwrap(), hash2.unwrap(), "Expected same block to hash to the same value");
+        //assert!(hash.unwrap().len() > 10, "expected a longer hash");       
     }
 
     #[test]
