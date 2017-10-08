@@ -14,7 +14,7 @@ extern crate sha2;
 extern crate base64;
 
 mod hasher;
-mod blockchain;
+mod lib;
 mod web;
 
 fn main() {

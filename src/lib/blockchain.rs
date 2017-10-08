@@ -2,28 +2,16 @@
 use chrono;
 use hasher;
 
+use lib::transaction::Transaction;
 use std::collections::BTreeSet;
 use std::collections::HashSet;
 use self::chrono::offset::Utc;
-
-type Address = String;
-type Amount = i64;
 
 #[derive(Debug)]
 pub struct Blockchain {
     chain: BTreeSet<Block>,
     current_transactions: BTreeSet<Transaction>,
     nodes: HashSet<String>
-}
-
-#[derive(Debug)]
-#[derive(Clone)]
-#[derive(Serialize, Deserialize)]
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
-pub struct Transaction {
-    pub sender: Address,
-    pub recipient: Address,
-    pub amount: Amount
 }
 
 #[derive(Debug)]
@@ -37,16 +25,6 @@ pub struct Block {
     transactions: BTreeSet<Transaction>
 }
 
-impl Transaction {
-    pub fn new(sender: Address, recipient: Address, amount: Amount) -> Transaction {
-        Transaction {
-            sender: sender,
-            recipient: recipient,
-            amount: amount
-        }
-    }
-}
-
 impl Blockchain {
     pub fn new() -> Blockchain {
         let mut blockchain = Blockchain {
@@ -57,8 +35,7 @@ impl Blockchain {
         blockchain.new_block(100, String::from("Genesis block."));
         blockchain
     }
-    
-      
+          
     fn create_block(&mut self, proof: u64, previous_hash: String) -> Block {
         //Current transactions get moved to this block and are cleared to start
         //collecting the next block's transactions
