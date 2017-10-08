@@ -25,7 +25,7 @@ fn main() {
     .manage(config)
     .mount("/", routes![
     
-        web::new_block, 
+        web::mine, 
         web::new_transaction
         
     ]).launch();

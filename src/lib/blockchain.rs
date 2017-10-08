@@ -18,11 +18,11 @@ pub struct Blockchain {
 #[derive(Serialize)]
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Block {
-    index: usize,
-    timestamp: i64,
-    proof: u64,
-    previous_hash: String,
-    transactions: BTreeSet<Transaction>
+    pub index: usize,
+    pub timestamp: i64,
+    pub proof: u64,
+    pub previous_hash: String,
+    pub transactions: BTreeSet<Transaction>
 }
 
 impl Blockchain {
@@ -35,7 +35,30 @@ impl Blockchain {
         blockchain.new_block(100, String::from("Genesis block."));
         blockchain
     }
-          
+    
+    ///
+    /// Add a new transaction
+    /// 
+    pub fn new_transaction(&mut self, transaction: Transaction) -> usize {        
+        self.current_transactions.insert(transaction);
+        self.last_block().index
+    }
+
+    ///
+    /// Mine a new block
+    /// 
+   pub fn mine(&mut self) -> &Block {
+        // We run the proof of work algorithm to get the next proof...    
+        let new_block_proof = self.new_block_proof();
+        //Got it. Give ourselves the new coin (block?)
+        //The sender is "0" to signify that this node has mined a new coin.
+        self.new_transaction(Transaction::new("0".into(), "my node address".into(), 1));
+        let previous_hash = self.hash_last_block();
+        //Forge the new Block by adding it to the chain
+        let mined_block = self.new_block(new_block_proof, previous_hash);
+        &mined_block
+    }
+
     fn create_block(&mut self, proof: u64, previous_hash: String) -> Block {
         //Current transactions get moved to this block and are cleared to start
         //collecting the next block's transactions
@@ -53,23 +76,19 @@ impl Blockchain {
     ///
     ///Create a new Block 
     ///
-    pub fn new_block(&mut self, proof: u64, previous_hash: String) -> &Block {
+    fn new_block(&mut self, proof: u64, previous_hash: String) -> &Block {
         let block = self.create_block(proof, previous_hash);
         self.chain.insert(block);
         &self.chain.iter().next_back().expect("Just added element")
     }
 
-    pub fn new_transaction(&mut self, transaction: Transaction) -> usize {        
-        self.current_transactions.insert(transaction);
-        self.last_block().index
-    }
-
-    pub fn last_block(&self) -> &Block {
+  
+    fn last_block(&self) -> &Block {
         //it's a double-ended iterator, and it's sorted, so it should be fast
         self.chain.iter().next_back().expect("Chain empty. Expected genesis block")
     }
 
-    pub fn hash(block: &Block) -> Result<String, String> {
+    fn hash(block: &Block) -> Result<String, String> {
        self::hash(block)
     }
 
@@ -78,6 +97,7 @@ impl Blockchain {
     ///          - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
     ///          - p is the previous proof, and p' is the new proof
     fn proof_of_work(last_proof: u64) -> u64 {
+        info!("Mining from last_proof {}...", last_proof);
         let mut proof = 0;
         while !Self::valid_proof(last_proof, proof) {
              proof += 1
@@ -112,17 +132,7 @@ impl Blockchain {
         Self::hash(last_block).expect("hash block failed")
     }
 
-    fn mine(&mut self) -> &Block {
-        // We run the proof of work algorithm to get the next proof...    
-        let new_block_proof = self.new_block_proof();
-        //Got it. Give ourselves the new coin (block?)
-        //The sender is "0" to signify that this node has mined a new coin.
-        self.new_transaction(Transaction::new("0".into(), "my node address".into(), 1));
-        let previous_hash = self.hash_last_block();
-        //Forge the new Block by adding it to the chain
-        let mined_block = self.new_block(new_block_proof, previous_hash);
-        &mined_block
-    }
+ 
 }
 
 #[cfg(test)]

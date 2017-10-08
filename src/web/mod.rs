@@ -1,15 +1,9 @@
 extern crate rocket;
 
-use serde_json;
 use rocket::State;
 use lib::blockchain::*;
 use lib::transaction::*;
 use std::sync::{RwLock};
-use std::io::Read;
-use rocket::{Request, Data, Outcome};
-use rocket::data::{self, FromData};
-use rocket::http::{Status, ContentType};
-use rocket::Outcome::*;
 
 mod converters;
 
@@ -26,11 +20,20 @@ impl BlockchainState {
 }
 
 //todo: post
-#[get("/new-block")]
-pub fn new_block(state: State<BlockchainState>) -> Result<String, u32> {
-    return blockchain_op(&state, |b|{
-         
-         return "all good".into();
+#[get("/mine")]
+pub fn mine(state: State<BlockchainState>) -> Result<String, u32> {
+    return blockchain_op(&state, |b| {
+
+        let mined_block = b.mine();
+
+        return format!("Mined new block with proof {}", mined_block.proof);
+    //      response = {
+    //     'message': "New Block Forged",
+    //     'index': block['index'],
+    //     'transactions': block['transactions'],
+    //     'proof': block['proof'],
+    //     'previous_hash': block['previous_hash'],
+    // }
     });
 }
 

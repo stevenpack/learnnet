@@ -2,9 +2,9 @@ extern crate rocket;
 
 use lib::transaction::Transaction;
 use serde_json;
-use rocket::{Request, Data, Outcome};
+use rocket::{Request, Data};
 use rocket::data::{self, FromData};
-use rocket::http::{Status, ContentType};
+use rocket::http::{Status};
 use rocket::Outcome::*;
 
 impl FromData for Transaction {

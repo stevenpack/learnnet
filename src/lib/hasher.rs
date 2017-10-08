@@ -16,6 +16,6 @@ pub fn hash_string(string: String) -> String {
     let mut hasher = Sha256::default();
     hasher.input(string.as_bytes());
     let base64_hash = base64::encode(hasher.result().as_slice());
-    debug!("struct {:?} -> hash: {:?}", string, base64_hash);
+    trace!("struct {:?} -> hash: {:?}", string, base64_hash);
     base64_hash
 }
