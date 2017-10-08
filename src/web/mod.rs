@@ -1,5 +1,5 @@
-extern crate rocket;
-
+use serde_json;
+use std::collections::BTreeSet;
 use rocket::State;
 use lib::blockchain::*;
 use lib::transaction::*;
@@ -19,21 +19,34 @@ impl BlockchainState {
     }
 }
 
-//todo: post
-#[get("/mine")]
+#[derive(Serialize)]
+struct MineResult {
+    message: String,
+    index: usize,
+    transactions: BTreeSet<Transaction>,
+    proof: u64,
+    previous_hash: String
+}
+
+//todo: respone as JSON - https://github.com/SergioBenitez/Rocket/blob/v0.3.3/examples/json/src/main.rs
+#[get("/mine", format = "application/json")]
 pub fn mine(state: State<BlockchainState>) -> Result<String, u32> {
     return blockchain_op(&state, |b| {
 
         let mined_block = b.mine();
 
-        return format!("Mined new block with proof {}", mined_block.proof);
-    //      response = {
-    //     'message': "New Block Forged",
-    //     'index': block['index'],
-    //     'transactions': block['transactions'],
-    //     'proof': block['proof'],
-    //     'previous_hash': block['previous_hash'],
-    // }
+        let response = MineResult {
+            message: "New Block Forged".into(),
+            index: mined_block.index,
+            transactions: mined_block.transactions.clone(),
+            proof: mined_block.proof,
+            previous_hash: mined_block.previous_hash.clone()
+        };
+
+        serde_json::to_string(&response).unwrap_or_else(|e| {
+            error!("serialize errro: {:?}", e);
+            return String::from("Block mined, but details not available")
+        })
     });
 }
 

@@ -10,6 +10,7 @@ use self::chrono::offset::Utc;
 #[derive(Debug)]
 pub struct Blockchain {
     chain: BTreeSet<Block>,
+    //not a lot of sorted options in stdlib...
     current_transactions: BTreeSet<Transaction>,
     nodes: HashSet<String>
 }
