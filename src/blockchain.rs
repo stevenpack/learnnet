@@ -65,13 +65,16 @@ impl Blockchain {
     }
     
       
-    fn create_block(&self, proof: u64, previous_hash: String) -> Block {
+    fn create_block(&mut self, proof: u64, previous_hash: String) -> Block {
+        //Clear the old transactions and add the current ones to the new block
+        let mut txns = BTreeSet::new();
+        txns.append(&mut self.current_transactions);
         Block {
             index: self.chain.len() + 1,
             timestamp: Utc::now().timestamp(),
             proof: proof,
-            previous_hash: previous_hash, //or self.hash(self.chain[-1]),
-            transactions: self.current_transactions
+            previous_hash: previous_hash,
+            transactions: txns
         }
     }
 
@@ -79,10 +82,7 @@ impl Blockchain {
     ///Create a new Block 
     ///
     pub fn new_block(&mut self, proof: u64, previous_hash: String) -> &Block {
-
         let block = self.create_block(proof, previous_hash);
-
-        self.current_transactions = BTreeSet::new();
         self.chain.insert(block);
         &self.chain.iter().next_back().expect("Just added element")
     }
@@ -131,7 +131,7 @@ impl Blockchain {
         is_valid
     }
 
-    fn work(&self) -> u64{
+    fn new_block_proof(&self) -> u64{
         let last_block = self.last_block();
         let last_proof = last_block.proof;
         //Mine!
@@ -145,7 +145,7 @@ impl Blockchain {
 
     fn mine(&mut self) -> &Block {
         // We run the proof of work algorithm to get the next proof...    
-        let new_block_proof = self.work();
+        let new_block_proof = self.new_block_proof();
         //Got it. Give ourselves the new coin (block?)
         //The sender is "0" to signify that this node has mined a new coin.
         self.new_transaction(String::from("0"), String::from("todo: node identifier"), 1);
@@ -202,16 +202,16 @@ mod tests {
     #[test]
     fn valid_proof_false() {
         let mut blockchain = Blockchain::new();     
-        assert_eq!(Blockchain::valid_proof(1,1), false);
+        assert_eq!(Blockchain::valid_proof(100,1), false);
     }
     
     #[test]
     fn proof_of_work() {
         let mut blockchain = Blockchain::new();     
-        let proof = blockchain.proof_of_work(1);
+        let proof = blockchain.new_block_proof();
         println!("Proof of work: {}", proof);
         assert!(proof > 1, "expected a higher proof");
-        assert!(Blockchain::valid_proof(1, proof));
+        assert!(Blockchain::valid_proof(100, proof));
     }
   
 }

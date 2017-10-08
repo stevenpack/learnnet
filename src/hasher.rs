@@ -3,7 +3,6 @@ use serde_json;
 use base64;
 use std::fmt::Debug;
 use std::result::Result;
-use serde_json::Error;
 use sha2::{Sha256, Digest};
 
 
