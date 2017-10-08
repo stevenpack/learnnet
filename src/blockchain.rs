@@ -1,10 +1,13 @@
 
-use serde_json;
 use chrono;
 
-use std::cmp::Ord;
-use std::cmp::Ordering;
+// use std::cmp::Ord;
+// use std::cmp::Ordering;
+use hasher;
 
+use serde_json;
+
+use std::error::Error;
 use std::collections::BTreeSet;
 use std::collections::HashSet;
 use self::chrono::offset::Utc;
@@ -12,12 +15,14 @@ use self::chrono::offset::Utc;
 type Address = String;
 type Amount = i64;
 
+#[derive(Debug)]
 pub struct Blockchain {
     chain: BTreeSet<Block>,
     current_transactions: BTreeSet<Transaction>,
     nodes: HashSet<String>
 }
 
+#[derive(Debug)]
 #[derive(Serialize)]
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Transaction {
@@ -26,6 +31,7 @@ pub struct Transaction {
     amount: Amount
 }
 
+#[derive(Debug)]
 #[derive(Serialize)]
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Block {
@@ -105,13 +111,9 @@ impl Blockchain {
         self.chain.iter().next_back().expect("chain empty. expected genesis block")
     }
 
-    pub fn hash(&self, block: &Block) -> String {
-        //let j = serde_json::to_string(block)?;
-        let j = serde_json::to_string(block);
-        println!("{:?}", j);
-        String::from("a")
+    pub fn hash(&self, block: &Block) -> Result<String, String> {
+       hasher::hash(block)
     }
-
 }
 
 #[cfg(test)]
@@ -152,6 +154,8 @@ mod tests {
         let block = blockchain.last_block();
         let hash = blockchain.hash(block);
         println!("{:?}", hash);
+        assert!(hash.is_ok());
+        assert!(hash.unwrap().len() > 10, "expected a longer hash");       
     }
 }
 

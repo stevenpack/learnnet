@@ -8,11 +8,19 @@ extern crate chrono;
 extern crate serde;
 extern crate serde_json;
 
+#[macro_use] extern crate log;
+extern crate env_logger;
+extern crate sha2;
+extern crate base64;
 
+mod hasher;
 mod blockchain;
 mod web;
 
 fn main() {
+    env_logger::init();
+    debug!("Started");
+
     let config = web::BlockchainState::new(); 
     rocket::ignite()
     .manage(config)
