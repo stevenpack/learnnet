@@ -37,7 +37,7 @@ pub struct Transaction {
 pub struct Block {
     index: usize,
     timestamp: i64,
-    proof: i64,
+    proof: u64,
     previous_hash: String,
     transactions: BTreeSet<Transaction>
 }
@@ -65,20 +65,20 @@ impl Blockchain {
     }
     
       
-    fn create_block(&self, proof: i64, previous_hash: String) -> Block {
+    fn create_block(&self, proof: u64, previous_hash: String) -> Block {
         Block {
             index: self.chain.len() + 1,
             timestamp: Utc::now().timestamp(),
             proof: proof,
             previous_hash: previous_hash, //or self.hash(self.chain[-1]),
-            transactions: BTreeSet::new()
+            transactions: self.current_transactions
         }
     }
 
     ///
     ///Create a new Block 
     ///
-    pub fn new_block(&mut self, proof: i64, previous_hash: String) -> &Block {
+    pub fn new_block(&mut self, proof: u64, previous_hash: String) -> &Block {
 
         let block = self.create_block(proof, previous_hash);
 
@@ -107,7 +107,7 @@ impl Blockchain {
     ///Simple Proof of Work Algorithm:
     ///          - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
     ///          - p is the previous proof, and p' is the new proof
-    fn proof_of_work(&self, last_proof: u64) -> u64 {
+    fn proof_of_work(last_proof: u64) -> u64 {
         let mut proof = 0;
         while !Self::valid_proof(last_proof, proof) {
              proof += 1
@@ -129,6 +129,30 @@ impl Blockchain {
             debug!("guess_hash: {}", guess_hash);
         }
         is_valid
+    }
+
+    fn work(&self) -> u64{
+        let last_block = self.last_block();
+        let last_proof = last_block.proof;
+        //Mine!
+        Self::proof_of_work(last_proof)
+    }
+
+    fn hash_last_block(&self) -> String {
+        let last_block = self.last_block();
+        Self::hash(last_block).expect("hash block failed")
+    }
+
+    fn mine(&mut self) -> &Block {
+        // We run the proof of work algorithm to get the next proof...    
+        let new_block_proof = self.work();
+        //Got it. Give ourselves the new coin (block?)
+        //The sender is "0" to signify that this node has mined a new coin.
+        self.new_transaction(String::from("0"), String::from("todo: node identifier"), 1);
+        let previous_hash = self.hash_last_block();
+        //Forge the new Block by adding it to the chain
+        let mined_block = self.new_block(new_block_proof, previous_hash);
+        &mined_block
     }
 }
 
