@@ -34,7 +34,6 @@ pub fn mine(state: State<BlockchainState>) -> Result<String, u32> {
     return blockchain_op(&state, |b| {
 
         let mined_block = b.mine();
-
         let response = MineResult {
             message: "New Block Forged".into(),
             index: mined_block.index,
@@ -59,8 +58,6 @@ pub fn new_transaction(transaction: Transaction, state: State<BlockchainState>) 
     })
 }
 
-
-
 ///
 /// Retrieves the blockchain from state, unlocks and executions the closure
 /// 
@@ -72,6 +69,7 @@ fn blockchain_op<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<
         let result = blockchain_op(&mut blockchain);
         return Ok(result);        
     }
+    error!("Couldn't acquire lock");
     Err(500)
 }
 
