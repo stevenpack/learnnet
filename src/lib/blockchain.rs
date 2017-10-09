@@ -133,19 +133,18 @@ impl Blockchain {
         //TODO: Don't panic here
         Self::hash(last_block).expect("hash block failed")
     }
-
- 
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
-    use blockchain::Blockchain;
+    use lib::blockchain::Blockchain;
+    use lib::transaction::Transaction;
 
     #[test]
     fn new_transaction() {
         let mut blockchain = Blockchain::new();
-        let idx = blockchain.new_transaction(String::from("a"), String::from("b"), 100);
+        let txn = Transaction::new(String::from("a"), String::from("b"), 100);
+        let _idx = blockchain.new_transaction(txn);
         let last_txn = blockchain.current_transactions.iter().next_back().expect("expected a txn");
         assert_eq!(last_txn.sender, String::from("a"));
         assert_eq!(last_txn.recipient, String::from("b"));
@@ -155,7 +154,8 @@ mod tests {
      #[test]
     fn new_block() {
         let mut blockchain = Blockchain::new();
-        blockchain.new_transaction(String::from("a"), String::from("b"), 100);
+        let txn = Transaction::new(String::from("a"), String::from("b"), 100);
+        blockchain.new_transaction(txn);
         
         let a = blockchain.current_transactions.len();
         assert_eq!(1, a , "1 transaction");
@@ -182,13 +182,12 @@ mod tests {
 
     #[test]
     fn valid_proof_false() {
-        let mut blockchain = Blockchain::new();     
         assert_eq!(Blockchain::valid_proof(100,1), false);
     }
     
     #[test]
     fn proof_of_work() {
-        let mut blockchain = Blockchain::new();     
+        let blockchain = Blockchain::new();     
         let proof = blockchain.new_block_proof();
         println!("Proof of work: {}", proof);
         assert!(proof > 1, "expected a higher proof");
