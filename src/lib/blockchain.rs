@@ -40,9 +40,11 @@ impl Blockchain {
     ///
     /// Add a new transaction
     /// 
+    /// returns: the index of the block it will be added to
     pub fn new_transaction(&mut self, transaction: Transaction) -> usize {        
         self.current_transactions.insert(transaction);
-        self.last_block().index
+        //It will be added to the index of the next block
+        self.last_block().index + 1
     }
 
     ///
@@ -82,7 +84,6 @@ impl Blockchain {
         self.chain.insert(block);
         &self.chain.iter().next_back().expect("Just added element")
     }
-
   
     fn last_block(&self) -> &Block {
         //it's a double-ended iterator, and it's sorted, so it should be fast

@@ -43,13 +43,12 @@ pub fn mine(state: State<BlockchainState>) -> Result<String, u32> {
         };
 
         serde_json::to_string(&response).unwrap_or_else(|e| {
-            error!("serialize errro: {:?}", e);
+            error!("serialize error: {:?}", e);
             return String::from("Block mined, but details not available")
         })
     });
 }
 
-//todo: post
 #[post("/transaction/new", format = "application/json", data = "<transaction>")]
 pub fn new_transaction(transaction: Transaction, state: State<BlockchainState>) -> Result<String, u32> {
     blockchain_op(&state, |b| {
@@ -59,7 +58,7 @@ pub fn new_transaction(transaction: Transaction, state: State<BlockchainState>) 
 }
 
 ///
-/// Retrieves the blockchain from state, unlocks and executions the closure
+/// Retrieves the blockchain from state, unlocks and executes the closure
 /// 
 fn blockchain_op<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<String, u32> 
     where F: Fn(&mut Blockchain) -> String {
