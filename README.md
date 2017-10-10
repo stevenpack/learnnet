@@ -4,6 +4,21 @@ Inspired by [https://hackernoon.com/learn-blockchains-by-building-one-117428612f
 
 For my own learning purposes, but could be fun to stand it up somewhere publicly and make it a blockchain learning experiment for others... more to come.
 
+###Dependenies
+- [Rust nightly](https://rustup.rs/)
+- [Just](https://crates.io/crates/just) (rust make-like command runner)  
+
+###Build
+`just build`
+
+###Test
+`just test`
+
+###Run
+`just run`  
+
+Then, use Postman or similar interact.
+
 ##TODO
 
 - Custom error types (get rid of map_err(|e| e.to_string()))
