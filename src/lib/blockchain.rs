@@ -6,6 +6,7 @@ use lib::transaction::Transaction;
 use std::collections::BTreeSet;
 use std::collections::HashSet;
 use self::chrono::offset::Utc;
+use url::{Url, ParseError};
 
 #[derive(Debug)]
 pub struct Blockchain {
@@ -65,6 +66,22 @@ impl Blockchain {
     pub fn chain(&self) -> &BTreeSet<Block> {
         &self.chain
     }
+
+    ///
+    /// Add a new node
+    /// 
+    pub fn register_node(&self, address: Url) {
+
+    }
+    //         """
+    //         Add a new node to the list of nodes
+
+    //         :param address: <str> Address of node. Eg. 'http://192.168.0.5:5000'
+    //         :return: None
+    //         """
+
+    //         parsed_url = urlparse(address)
+    //         self.nodes.add(parsed_url.netloc)
 
     fn create_block(&mut self, proof: u64, previous_hash: String) -> Block {
         //Current transactions get moved to this block and are cleared to start

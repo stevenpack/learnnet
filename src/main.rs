@@ -12,6 +12,7 @@ extern crate serde_json;
 extern crate env_logger;
 extern crate sha2;
 extern crate base64;
+extern crate url;
 
 mod lib;
 mod web;
@@ -27,7 +28,8 @@ fn main() {
     
         web::mine, 
         web::new_transaction,
-        web::chain
+        web::chain,
+        web::register_node
         
     ]).launch();
 }

@@ -1,5 +1,6 @@
 extern crate rocket;
 
+use web::NodeList;
 use lib::transaction::Transaction;
 use serde_json;
 use rocket::{Request, Data};
@@ -21,5 +22,23 @@ impl FromData for Transaction {
         };
         debug!("Successfully parsed transaction. {:?}", transaction);
         Success(transaction)
+    }
+}
+
+impl FromData for NodeList {
+    type Error = String;
+
+    fn from_data(_: &Request, data: Data) -> data::Outcome<Self, String> {
+        
+        //Terser way to express?
+        let node_list: NodeList = match serde_json::from_reader(data.open()) {
+            Ok(node_list) => node_list,
+            Err(e) => {
+                error!("Failed to deserialize node_list {:?}", e);
+                return Failure((Status::BadRequest, format!("Couldn't parse node_list")));
+            }
+        };
+        debug!("Successfully parsed node_list");
+        Success(node_list)
     }
 }
