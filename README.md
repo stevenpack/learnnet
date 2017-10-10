@@ -1,29 +1,29 @@
 
-#LearnNet
+# LearnNet
 Inspired by [https://hackernoon.com/learn-blockchains-by-building-one-117428612f46](https://hackernoon.com/learn-blockchains-by-building-one-117428612f46) and started as a fork of [https://github.com/dvf/blockchain](https://github.com/dvf/blockchain)
 
 For my own learning purposes, but could be fun to stand it up somewhere publicly and make it a blockchain learning experiment for others... more to come.
 
-###Dependenies
+### Dependenies
 - [Rust nightly](https://rustup.rs/)
 - [Just](https://crates.io/crates/just) (rust make-like command runner)  
 
-###Build
+### Build
 `just build`
 
-###Test
+### Test
 `just test`
 
-###Run
+### Run
 `just run`  
 
 Then, use Postman or similar interact.
 
-##TODO
+## TODO
 
 - Custom error types (get rid of map_err(|e| e.to_string()))
 
-##Learnings and Questions
+## Learnings and Questions
 
 **Genesis**
 What is special about it?
