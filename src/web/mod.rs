@@ -90,24 +90,7 @@ pub fn chain(state: State<BlockchainState>) -> Result<String, u32> {
 #[post("/nodes/register", format = "application/json", data="<node_list>")]
 pub fn register_node(node_list: NodeList, state: State<BlockchainState>) -> Result<String, u32> {
     blockchain_op(&state, |b| {
-        
-        //values = request.get_json()
-
-        //     nodes = values.get('nodes')
-        //     if nodes is None:
-        //         return "Error: Please supply a valid list of nodes", 400
-
-        //     for node in nodes:
-        //         blockchain.register_node(node)
-
-        //     response = {
-        //         'message': 'New nodes have been added',
-        //         'total_nodes': list(blockchain.nodes),
-        //     }
-        //     return jsonify(response), 201
-        for x in &node_list.nodes {
-            debug!("{}", x);
-        }
+               
         //let url = Url::parse();
         //let index = b.register_node(url);
         return format!("Added nodes");
