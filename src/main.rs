@@ -26,7 +26,8 @@ fn main() {
     .mount("/", routes![
     
         web::mine, 
-        web::new_transaction
+        web::new_transaction,
+        web::chain
         
     ]).launch();
 }

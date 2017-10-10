@@ -62,6 +62,10 @@ impl Blockchain {
         &mined_block
     }
 
+    pub fn chain(&self) -> &BTreeSet<Block> {
+        &self.chain
+    }
+
     fn create_block(&mut self, proof: u64, previous_hash: String) -> Block {
         //Current transactions get moved to this block and are cleared to start
         //collecting the next block's transactions
@@ -75,7 +79,7 @@ impl Blockchain {
             transactions: txns
         }
     }
-
+    
     ///
     ///Create a new Block 
     ///
@@ -163,8 +167,7 @@ mod tests {
         blockchain.new_block(2, String::from("abc"));
                  
         let b = blockchain.current_transactions.len();
-        assert_eq!(0, b, "New block should clear transactions (which were on the previous block");
-    
+        assert_eq!(0, b, "New block should clear transactions (which were on the previous block");    
     }
     
     #[test]
@@ -193,7 +196,15 @@ mod tests {
         assert!(proof > 1, "expected a higher proof");
         assert!(Blockchain::valid_proof(100, proof));
     }
-  
+
+    #[test]
+    fn chain() {
+        let mut blockchain = Blockchain::new();     
+        
+        assert_eq!(blockchain.chain().len(),  1, "Expected 1 block (genesis)");
+        blockchain.new_block(100, "abc".into());
+        assert_eq!(blockchain.chain().len(),  2, "Expected 2 blocks");
+    }
 }
 
 // import hashlib

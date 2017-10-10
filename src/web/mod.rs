@@ -28,6 +28,12 @@ struct MineResult {
     previous_hash: String
 }
 
+#[derive(Serialize)]
+struct ChainResult<'a> {
+    chain: &'a BTreeSet<Block>,
+    length: usize
+}
+
 //todo: respone as JSON - https://github.com/SergioBenitez/Rocket/blob/v0.3.3/examples/json/src/main.rs
 #[get("/mine", format = "application/json")]
 pub fn mine(state: State<BlockchainState>) -> Result<String, u32> {
@@ -55,6 +61,23 @@ pub fn new_transaction(transaction: Transaction, state: State<BlockchainState>) 
         let index = b.new_transaction(transaction.clone());
         return format!("Transaction added at block {}", index);
     })
+}
+
+#[get("/chain", format = "application/json")]
+pub fn chain(state: State<BlockchainState>) -> Result<String, u32> {
+    return blockchain_op(&state, |b| {
+
+            let chain = b.chain();
+            let response = ChainResult {
+              chain: chain,
+              length: chain.len()
+            };
+
+            serde_json::to_string(&response).unwrap_or_else(|e| {
+                error!("serialize error: {:?}", e);
+                return String::from("Could not serialize chain.")
+            })
+        });
 }
 
 ///
