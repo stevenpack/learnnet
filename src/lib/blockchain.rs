@@ -6,14 +6,14 @@ use lib::transaction::Transaction;
 use std::collections::BTreeSet;
 use std::collections::HashSet;
 use self::chrono::offset::Utc;
-use url::{Url, ParseError};
+use url::{Url};
 
 #[derive(Debug)]
 pub struct Blockchain {
     chain: BTreeSet<Block>,
     //not a lot of sorted options in stdlib...
     current_transactions: BTreeSet<Transaction>,
-    nodes: HashSet<String>
+    nodes: HashSet<Url>
 }
 
 #[derive(Debug)]
@@ -70,9 +70,14 @@ impl Blockchain {
     ///
     /// Add a new node
     /// 
-    pub fn register_node(&self, address: Url) {
-
+    pub fn register_node(&mut self, address: Url) -> bool {
+        self.nodes.insert(address)
     }
+
+    pub fn nodes(&self) -> &HashSet<Url> {
+        &self.nodes
+    }
+
     //         """
     //         Add a new node to the list of nodes
 
@@ -160,6 +165,7 @@ impl Blockchain {
 mod tests {
     use lib::blockchain::Blockchain;
     use lib::transaction::Transaction;
+    use url::Url;
 
     #[test]
     fn new_transaction() {
@@ -208,8 +214,9 @@ mod tests {
     #[test]
     fn proof_of_work() {
         let blockchain = Blockchain::new();     
+        println!("Starting proof of work... (long running)");
         let proof = blockchain.new_block_proof();
-        println!("Proof of work: {}", proof);
+        println!("Finished proof of work: {}", proof);
         assert!(proof > 1, "expected a higher proof");
         assert!(Blockchain::valid_proof(100, proof));
     }
@@ -221,6 +228,16 @@ mod tests {
         assert_eq!(blockchain.chain().len(),  1, "Expected 1 block (genesis)");
         blockchain.new_block(100, "abc".into());
         assert_eq!(blockchain.chain().len(),  2, "Expected 2 blocks");
+    }
+
+    #[test]
+    fn register_node() {
+        let mut blockchain = Blockchain::new();     
+        let test_local_url = Url::parse("http://localhost:9000").expect("valid url");
+        blockchain.register_node(test_local_url.clone());
+        assert_eq!(blockchain.nodes().len(),  1, "Expected 1 node");
+        blockchain.register_node(test_local_url);
+        assert_eq!(blockchain.nodes().len(),  1, "Expected 1 node after dupe add (idempotent)");
     }
 }
 
