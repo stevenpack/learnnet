@@ -154,28 +154,34 @@ impl Blockchain {
     ///
     ///         Determine if a given blockchain is valid
     /// 
-    fn valid_chain(&self, chain: &BTreeSet<Block>) -> bool {
-        
+    fn valid_chain(&self, chain: &BTreeSet<Block>) -> bool {        
         debug!("{} blocks in chain.", chain.len());
-
         let mut previous_block_opt: Option<&Block> = None;        
-
         for block in chain {
-            
             if let Some(previous_block) = previous_block_opt {
-                //Check the hash
-                let previous_block_hash = Self::hash(previous_block).expect("//todo handle hash failre");
-                if block.previous_hash != previous_block_hash {
-                    warn!("HASH MISMATCH {} <> {}", block.previous_hash, previous_block_hash);
-                    return false
-                }
-                //# Check the Proof of Work
-                if !Self::valid_proof(previous_block.proof, block.proof) {                
-                    warn!("PROOF MISMATCH {} <> {}", previous_block.proof, block.proof);
-                    return false
-                }
+                //Check the hash and proof
+                if !Self::check_hash(previous_block, block) || !Self::check_proof(previous_block, block) {
+                    return false;
+                }               
             }
             previous_block_opt = Some(&block);
+        }
+        true
+    }
+
+    fn check_hash(previous_block: &Block, current_block: &Block) -> bool {
+        let previous_block_hash = Self::hash(previous_block).expect("//todo handle hash failure");
+        if current_block.previous_hash != previous_block_hash {
+            warn!("HASH MISMATCH {} <> {}", current_block.previous_hash, previous_block_hash);
+            return false
+        }
+        true
+    }
+
+    fn check_proof(previous_block: &Block, current_block: &Block) -> bool {
+        if !Self::valid_proof(previous_block.proof, current_block.proof) {                
+            warn!("PROOF MISMATCH {} <> {}", previous_block.proof, current_block.proof);
+            return false
         }
         true
     }
@@ -232,7 +238,7 @@ mod tests {
         assert_eq!(Blockchain::valid_proof(100,1), false);
     }
     
-    #[ignore]
+    #[cfg(feature = "mining-tests")]    
     #[test]
     fn proof_of_work() {
         let blockchain = Blockchain::new();     
@@ -286,7 +292,8 @@ mod tests {
         assert!(!blockchain.valid_chain(&blockchain.chain), "blockchain not valid (proof mismatch)");
     }
 
-     #[test]
+    #[test]
+    #[cfg(feature = "mining-tests")]    
     fn valid_chain_ok() {
         let mut blockchain = Blockchain::new();
         let txn = Transaction::new(String::from("a"), String::from("b"), 100);
