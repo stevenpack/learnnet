@@ -2,7 +2,7 @@ build:
     cargo build
 
 test:
-    cargo test -- --nocapture
+    RUST_LOG=debug cargo test -- --nocapture
 
 run:
     RUST_LOG=debug cargo run

@@ -78,16 +78,6 @@ impl Blockchain {
         &self.nodes
     }
 
-    //         """
-    //         Add a new node to the list of nodes
-
-    //         :param address: <str> Address of node. Eg. 'http://192.168.0.5:5000'
-    //         :return: None
-    //         """
-
-    //         parsed_url = urlparse(address)
-    //         self.nodes.add(parsed_url.netloc)
-
     fn create_block(&mut self, proof: u64, previous_hash: String) -> Block {
         //Current transactions get moved to this block and are cleared to start
         //collecting the next block's transactions
@@ -135,10 +125,10 @@ impl Blockchain {
     }
 
     /// Validates the Proof
-    /// i.e. does the hash of last_proof and this proof end in 000?
+    /// i.e. does the hash of last_proof and this proof start with 000?
     fn valid_proof(last_proof: u64, proof: u64) -> bool {
         
-        let guess = format!("{}{}", last_proof,proof);
+        let guess = format!("{}{}", last_proof, proof);
         let guess_hash =  self::hash_string(guess);
         let is_valid = guess_hash.starts_with("000");
         if is_valid {
@@ -150,7 +140,7 @@ impl Blockchain {
     fn new_block_proof(&self) -> u64{
         let last_block = self.last_block();
         let last_proof = last_block.proof;
-        //Mine!
+        //Mine it!
         Self::proof_of_work(last_proof)
     }
 
@@ -159,6 +149,36 @@ impl Blockchain {
         //TODO: Don't panic here
         Self::hash(last_block).expect("hash block failed")
     }
+
+
+    ///
+    ///         Determine if a given blockchain is valid
+    /// 
+    fn valid_chain(&self, chain: &BTreeSet<Block>) -> bool {
+        
+        debug!("{} blocks in chain.", chain.len());
+
+        let mut previous_block_opt: Option<&Block> = None;        
+
+        for block in chain {
+            
+            if let Some(previous_block) = previous_block_opt {
+                //Check the hash
+                let previous_block_hash = Self::hash(previous_block).expect("//todo handle hash failre");
+                if block.previous_hash != previous_block_hash {
+                    warn!("HASH MISMATCH {} <> {}", block.previous_hash, previous_block_hash);
+                    return false
+                }
+                //# Check the Proof of Work
+                if !Self::valid_proof(previous_block.proof, block.proof) {                
+                    warn!("PROOF MISMATCH {} <> {}", previous_block.proof, block.proof);
+                    return false
+                }
+            }
+            previous_block_opt = Some(&block);
+        }
+        true
+    }
 }
 
 #[cfg(test)]
@@ -166,6 +186,7 @@ mod tests {
     use lib::blockchain::Blockchain;
     use lib::transaction::Transaction;
     use url::Url;
+    use env_logger;
 
     #[test]
     fn new_transaction() {
@@ -211,6 +232,7 @@ mod tests {
         assert_eq!(Blockchain::valid_proof(100,1), false);
     }
     
+    #[ignore]
     #[test]
     fn proof_of_work() {
         let blockchain = Blockchain::new();     
@@ -239,6 +261,42 @@ mod tests {
         blockchain.register_node(test_local_url);
         assert_eq!(blockchain.nodes().len(),  1, "Expected 1 node after dupe add (idempotent)");
     }
+
+    #[test]
+    fn valid_chain_invalid_hash() {
+        //env_logger::init().unwrap();
+        let mut blockchain = Blockchain::new();
+        let txn = Transaction::new(String::from("a"), String::from("b"), 100);
+        blockchain.new_transaction(txn);
+        //invalid hash
+        blockchain.new_block(2, String::from("abc"));
+        assert!(!blockchain.valid_chain(&blockchain.chain), "blockchain not valid (hash mismatch)");
+    }
+
+
+    #[test]
+    fn valid_chain_invalid_proof() {
+        let mut blockchain = Blockchain::new();
+        let txn = Transaction::new(String::from("a"), String::from("b"), 100);
+        blockchain.new_transaction(txn);
+        //valid hash, invalid proof
+        let hash = blockchain.hash_last_block();
+        blockchain.new_block(2, hash);
+
+        assert!(!blockchain.valid_chain(&blockchain.chain), "blockchain not valid (proof mismatch)");
+    }
+
+     #[test]
+    fn valid_chain_ok() {
+        let mut blockchain = Blockchain::new();
+        let txn = Transaction::new(String::from("a"), String::from("b"), 100);
+        blockchain.new_transaction(txn);
+        //valid hash, invalid proof
+        blockchain.mine();
+
+        assert!(blockchain.valid_chain(&blockchain.chain), "blockchain should be valid with a mined block");
+    }
+    
 }
 
 // import hashlib
