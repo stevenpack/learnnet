@@ -185,6 +185,38 @@ impl Blockchain {
         }
         true
     }
+
+    /// This is our consensus algorithm, it resolves conflicts
+    /// by replacing our chain with the longest one in the network.
+    /// :return: <bool> True if our chain was replaced, False if not
+    fn resolve_conflicts(&self) {
+        
+        let neighbours = self.nodes;
+        let new_chain: Option<BTreeSet<Block>> = None;
+
+        // We're only looking for chains longer than ours
+        let max_length = self.chain.len();
+
+        //Grab and verify the chains from all the nodes in our network
+        for node in neighbours:
+//             response = requests.get(f'http://{node}/chain')
+
+//             if response.status_code == 200:
+//                 length = response.json()['length']
+//                 chain = response.json()['chain']
+
+//                 # Check if the length is longer and the chain is valid
+//                 if length > max_length and self.valid_chain(chain):
+//                     max_length = length
+//                     new_chain = chain
+
+//         # Replace our chain if we discovered a new, valid chain longer than ours
+//         if new_chain:
+//             self.chain = new_chain
+//             return True
+
+//         return False
+    }
 }
 
 #[cfg(test)]
@@ -300,7 +332,6 @@ mod tests {
         blockchain.new_transaction(txn);
         //valid hash, invalid proof
         blockchain.mine();
-
         assert!(blockchain.valid_chain(&blockchain.chain), "blockchain should be valid with a mined block");
     }
     
