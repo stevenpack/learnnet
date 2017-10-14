@@ -13,6 +13,9 @@ extern crate env_logger;
 extern crate sha2;
 extern crate base64;
 extern crate url;
+extern crate futures;
+extern crate hyper;
+extern crate tokio_core;
 
 mod lib;
 mod web;

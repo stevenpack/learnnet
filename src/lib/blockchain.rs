@@ -8,9 +8,11 @@ use std::collections::HashSet;
 use self::chrono::offset::Utc;
 use url::{Url};
 
+pub type Chain = BTreeSet<Block>;
+
 #[derive(Debug)]
 pub struct Blockchain {
-    chain: BTreeSet<Block>,
+    chain: Chain,
     //not a lot of sorted options in stdlib...
     current_transactions: BTreeSet<Transaction>,
     nodes: HashSet<Url>
@@ -150,11 +152,10 @@ impl Blockchain {
         Self::hash(last_block).expect("hash block failed")
     }
 
-
     ///
     ///         Determine if a given blockchain is valid
     /// 
-    fn valid_chain(&self, chain: &BTreeSet<Block>) -> bool {        
+    fn valid_chain(&self, chain: &Chain) -> bool {        
         debug!("{} blocks in chain.", chain.len());
         let mut previous_block_opt: Option<&Block> = None;        
         for block in chain {
@@ -184,38 +185,6 @@ impl Blockchain {
             return false
         }
         true
-    }
-
-    /// This is our consensus algorithm, it resolves conflicts
-    /// by replacing our chain with the longest one in the network.
-    /// :return: <bool> True if our chain was replaced, False if not
-    fn resolve_conflicts(&self) {
-        
-        let neighbours = self.nodes;
-        let new_chain: Option<BTreeSet<Block>> = None;
-
-        // We're only looking for chains longer than ours
-        let max_length = self.chain.len();
-
-        //Grab and verify the chains from all the nodes in our network
-        for node in neighbours:
-//             response = requests.get(f'http://{node}/chain')
-
-//             if response.status_code == 200:
-//                 length = response.json()['length']
-//                 chain = response.json()['chain']
-
-//                 # Check if the length is longer and the chain is valid
-//                 if length > max_length and self.valid_chain(chain):
-//                     max_length = length
-//                     new_chain = chain
-
-//         # Replace our chain if we discovered a new, valid chain longer than ours
-//         if new_chain:
-//             self.chain = new_chain
-//             return True
-
-//         return False
     }
 }
 
