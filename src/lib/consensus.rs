@@ -1,33 +1,39 @@
 
 use std::collections::BTreeSet;
 use lib::blockchain::{Chain,Block};
-use std::io::{self, Write};
-use futures::{Future, Stream};
-use hyper::{Uri, Client, Response, Chunk};
-use tokio_core::reactor::Core;
 use url::{Url};
+use serde_json;
+use serde_json::Value;
+use reqwest::{Client, Response};
+use std::io::{Read};
 
-struct Consensus {    }
-
+struct Consensus;
 impl Consensus {
 
+    pub fn get(urls: &[Url]) -> Vec<Chain> {
+        let chains_raw = Self::get_neighbour_chains(urls);
+        Self::deserialize(chains_raw)
+    }
+
     fn get_neighbour_chains(urls: &[Url]) -> Vec<String> {
-
-        let mut core = Core::new().unwrap();
-        let http_client = Client::new(&core.handle());
-
         let mut chains = Vec::<String>::new();
+        let client = Client::new();
+        //upgrade_todo: rayon or tokio-hyper to request async
         for url in urls {
-            let uri = url.as_str().parse().unwrap();
-            let work = http_client.get(uri).map(|res| {
-                println!("RES {:?}", res);
-                res.body().concat2().and_then(move |body: Chunk| {
-                    println!("BODY {:?}", body);
-                    Ok(())
-                });
-            });
-            core.run(work);
-        }        
+            let mut res = client.get(url.as_str()).send().expect("todo: handle");
+            let mut buffer = String::new();
+            res.read_to_string(&mut buffer).expect("todo: handle");
+            chains.push(buffer);
+        }
+        chains
+    }
+
+    fn deserialize(chains_raw: Vec<String>) -> Vec<Chain> {
+        let mut chains = Vec::<Chain>::new();
+        for raw in chains_raw {
+            let chain: Chain = serde_json::from_str(raw.as_str()).unwrap();
+            chains.push(chain);
+        }
         chains
     }
 }
@@ -40,7 +46,7 @@ mod tests {
     #[cfg(feature = "integration")]   
     #[test]
     fn get_neighbour_chains() {
-        let urls = [Url::parse("http://google.com").unwrap()];
+        let urls = [Url::parse("http://koalasafe.com").unwrap()];
         Consensus::get_neighbour_chains(&urls);
     }
 }

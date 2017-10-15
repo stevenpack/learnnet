@@ -19,7 +19,7 @@ pub struct Blockchain {
 }
 
 #[derive(Debug)]
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Block {
     pub index: usize,
