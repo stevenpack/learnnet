@@ -2,6 +2,7 @@ use serde_json;
 use std::collections::BTreeSet;
 use rocket::State;
 use lib::blockchain::*;
+use lib::consensus::Consensus;
 use lib::transaction::*;
 use std::sync::{RwLock};
 use url::{Url};
@@ -126,6 +127,29 @@ pub fn register_node(node_list: NodeList, state: State<BlockchainState>) -> Resu
         }))       
     })
 }
+
+#[get("/nodes/resolve")]
+pub fn consensus(state: State<BlockchainState>) -> Result<String, u32> {
+    return blockchain_op(&state, |b| {
+        let replaced = Consensus::resolve_conflicts(b);
+        Ok(format!("replaced: {}", replaced))
+    });
+}
+// @app.route('/nodes/resolve', methods=['GET'])
+// def consensus():
+//     replaced = blockchain.resolve_conflicts()
+
+//     if replaced:
+//         response = {
+//             'message': 'Our chain was replaced',
+//             'new_chain': blockchain.chain
+//         }
+//     else:
+//         response = {
+//             'message': 'Our chain is authoritative',
+//             'chain': blockchain.chain
+//         }
+
 
 ///
 /// Retrieves the blockchain from state, unlocks and executes the closure

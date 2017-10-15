@@ -80,6 +80,14 @@ impl Blockchain {
         &self.nodes
     }
 
+    pub fn replace(&mut self, new_chain: Chain) {
+        self.chain = new_chain;
+    }
+
+    pub fn len(&self) -> usize {
+        self.chain.len()
+    }
+
     fn create_block(&mut self, proof: u64, previous_hash: String) -> Block {
         //Current transactions get moved to this block and are cleared to start
         //collecting the next block's transactions
@@ -155,7 +163,7 @@ impl Blockchain {
     ///
     ///         Determine if a given blockchain is valid
     /// 
-    fn valid_chain(&self, chain: &Chain) -> bool {        
+    pub fn valid_chain(&self, chain: &Chain) -> bool {        
         debug!("{} blocks in chain.", chain.len());
         let mut previous_block_opt: Option<&Block> = None;        
         for block in chain {

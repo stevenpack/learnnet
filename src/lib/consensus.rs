@@ -1,16 +1,38 @@
 
-use std::collections::BTreeSet;
-use lib::blockchain::{Chain,Block};
+use lib::blockchain::{Chain,Blockchain};
 use url::{Url};
 use serde_json;
-use serde_json::Value;
-use reqwest::{Client, Response};
+use reqwest::{Client};
 use std::io::{Read};
 
-struct Consensus;
+pub struct Consensus;
 impl Consensus {
 
-    pub fn get(urls: &[Url]) -> Vec<Chain> {
+    pub fn resolve_conflicts(blockchain: &mut Blockchain) -> bool {
+
+        let mut new_chain: Option<Chain> = None;
+        let mut max_length = blockchain.len();
+
+        let mut urls = Vec::<Url>::new();
+        for node in blockchain.nodes() {
+            urls.push(node.clone());
+        }
+        
+        let neighbour_chains = Self::get(urls.as_slice());
+        for chain in neighbour_chains {
+            if chain.len() > max_length && blockchain.valid_chain(&chain) {
+                max_length = chain.len();
+                new_chain = Some(chain);
+            }
+        }
+        if let Some(longest_chain) = new_chain {
+            blockchain.replace(longest_chain);
+            return true;
+        }
+        false
+    }
+
+    fn get(urls: &[Url]) -> Vec<Chain> {
         let chains_raw = Self::get_neighbour_chains(urls);
         Self::deserialize(chains_raw)
     }

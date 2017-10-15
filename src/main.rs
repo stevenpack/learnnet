@@ -30,7 +30,8 @@ fn main() {
         web::mine, 
         web::new_transaction,
         web::chain,
-        web::register_node
+        web::register_node,
+        web::consensus 
         
     ]).launch();
 }
