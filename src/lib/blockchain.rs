@@ -201,7 +201,6 @@ mod tests {
     use lib::blockchain::Blockchain;
     use lib::transaction::Transaction;
     use url::Url;
-    use env_logger;
 
     #[test]
     fn new_transaction() {

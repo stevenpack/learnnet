@@ -1,6 +1,5 @@
 
 use lib::blockchain::{Chain,Blockchain};
-use url::{Url};
 use serde_json;
 use reqwest::{Client};
 use std::io::{Read};
@@ -13,10 +12,12 @@ impl Consensus {
         let mut new_chain: Option<Chain> = None;
         let mut max_length = blockchain.len();
 
-        let mut urls = Vec::<Url>::new();
-        for node in blockchain.nodes() {
-            urls.push(node.clone());
-        }
+        let urls: Vec<String> = blockchain
+                                    .nodes()
+                                    .iter()
+                                    .cloned()
+                                    .map(|node| node.into_string())
+                                    .collect();
         
         let neighbour_chains = Self::get(urls.as_slice());
         for chain in neighbour_chains {
@@ -25,19 +26,19 @@ impl Consensus {
                 new_chain = Some(chain);
             }
         }
+        let is_replaced = new_chain.is_some();
         if let Some(longest_chain) = new_chain {
             blockchain.replace(longest_chain);
-            return true;
         }
-        false
+        is_replaced
     }
 
-    fn get(urls: &[Url]) -> Vec<Chain> {
+    fn get(urls: &[String]) -> Vec<Chain> {
         let chains_raw = Self::get_neighbour_chains(urls);
         Self::deserialize(chains_raw)
     }
 
-    fn get_neighbour_chains(urls: &[Url]) -> Vec<String> {
+    fn get_neighbour_chains(urls: &[String]) -> Vec<String> {
         let mut chains = Vec::<String>::new();
         let client = Client::new();
         //upgrade_todo: rayon or tokio-hyper to request async
@@ -53,8 +54,12 @@ impl Consensus {
     fn deserialize(chains_raw: Vec<String>) -> Vec<Chain> {
         let mut chains = Vec::<Chain>::new();
         for raw in chains_raw {
-            let chain: Chain = serde_json::from_str(raw.as_str()).unwrap();
-            chains.push(chain);
+
+            //todo: remove nodes who return invalid chains?
+            match serde_json::from_str(raw.as_str()) {
+                Ok(chain) => chains.push(chain),
+                Err(e) => error!("Unable to deserialize chain {:?} raw: {}", e, raw)
+            }            
         }
         chains
     }
@@ -64,12 +69,14 @@ impl Consensus {
 mod tests {    
     use lib::consensus::Consensus;
     use url::Url;
-
+    use env_logger;
+    
     #[cfg(feature = "integration")]   
     #[test]
     fn get_neighbour_chains() {
+        env_logger::init().unwrap();
         let urls = [Url::parse("http://koalasafe.com").unwrap()];
-        Consensus::get_neighbour_chains(&urls);
+        Consensus::get(&urls);
     }
 }
   
