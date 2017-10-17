@@ -21,7 +21,9 @@ Then, use Postman or similar interact.
 
 ## TODO
 
-- Custom error types (get rid of map_err(|e| e.to_string()))
+- Return JSON<T> with application/json content-type
+- Take difficulty as startup param
+- Node list, pull from Github on startup? Store as A records?
 
 ## Learnings and Questions
 

@@ -1,7 +1,9 @@
 use serde_json;
 use std::collections::BTreeSet;
-use rocket::State;
+use rocket;
+use rocket::{Config, State};
 use lib::blockchain::*;
+use lib::consensus::Consensus;
 use lib::transaction::*;
 use std::sync::{RwLock};
 use url::{Url};
@@ -12,9 +14,9 @@ pub struct BlockchainState {
 }
 
 impl BlockchainState {
-    pub fn new() -> BlockchainState {
+    pub fn new_with(difficulty: u64) -> BlockchainState {
         BlockchainState {
-            blockchain: RwLock::new(Blockchain::new())
+            blockchain: RwLock::new(Blockchain::new_with(difficulty))
         }
     }
 }
@@ -45,6 +47,20 @@ struct ChainResult<'a> {
 struct RegisterNodeResponse {
     message: String,
     total_nodes: usize
+}
+
+pub fn init(rocket_config: Config, blockchain_state: BlockchainState) {
+    rocket::custom(rocket_config, false)
+        .manage(blockchain_state)
+        .mount("/", routes![
+    
+            mine, 
+            new_transaction,
+            chain,
+            register_node,
+            consensus 
+            
+        ]).launch();
 }
 
 //todo: respone as JSON - https://github.com/SergioBenitez/Rocket/blob/v0.3.3/examples/json/src/main.rs
@@ -127,6 +143,26 @@ pub fn register_node(node_list: NodeList, state: State<BlockchainState>) -> Resu
     })
 }
 
+#[get("/nodes/resolve")]
+pub fn consensus(state: State<BlockchainState>) -> Result<String, u32> {
+    return blockchain_op(&state, |b| {
+        let replaced = Consensus::resolve_conflicts(b);
+        if replaced {
+            return Ok(json!({
+                "message": "Our chain was replaced",
+                "new_chain": b.chain()
+            }).to_string());
+        }
+        else
+        {
+            return Ok(json!({
+                "message": "Our chain is authoritative",
+                "chain": b.chain()
+            }).to_string());
+        }
+    });
+}
+
 ///
 /// Retrieves the blockchain from state, unlocks and executes the closure
 /// 
@@ -141,5 +177,3 @@ fn blockchain_op<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<
     error!("Couldn't acquire lock");
     Err(500)
 }
-
-
