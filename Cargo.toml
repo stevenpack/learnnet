@@ -1,3 +1,6 @@
+#![feature(const_unsafe_cell_new)]
+#![feature(const_atomic_usize_new)]
+
 [package]
 name = "learnnet"
 version = "0.1.0"

@@ -67,22 +67,24 @@ pub fn init(rocket_config: Config, blockchain_state: BlockchainState) {
 //todo: respone as JSON - https://github.com/SergioBenitez/Rocket/blob/v0.3.3/examples/json/src/main.rs
 #[get("/mine", format = "application/json")]
 pub fn mine(state: State<BlockchainState>) -> Result<String, u32> {
-    blockchain_op(&state, |b| {
+    blockchain_op(&state, |b| mine_impl(b))
+}
 
-        let mined_block = b.mine();
-        let response = MineResult {
-            message: "New Block Forged".into(),
-            index: mined_block.index,
-            transactions: mined_block.transactions.clone(),
-            proof: mined_block.proof,
-            previous_hash: mined_block.previous_hash.clone()
-        };
+//tood: to make testable... couldn't create Rocket::State, derived from state crate in tests
+fn mine_impl(b: &mut Blockchain) -> Result<String, u32> {
+     let mined_block = b.mine();
+    let response = MineResult {
+        message: "New Block Forged".into(),
+        index: mined_block.index,
+        transactions: mined_block.transactions.clone(),
+        proof: mined_block.proof,
+        previous_hash: mined_block.previous_hash.clone()
+    };
 
-        Ok(serde_json::to_string(&response).unwrap_or_else(|e| {
-            error!("serialize error: {:?}", e);
-            return String::from("Block mined, but details not available")
-        }))
-    })
+    Ok(serde_json::to_string(&response).unwrap_or_else(|e| {
+        error!("serialize error: {:?}", e);
+        return String::from("Block mined, but details not available")
+    }))
 }
 
 #[post("/transaction/new", format = "application/json", data = "<transaction>")]
@@ -177,4 +179,19 @@ fn blockchain_op<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<
     }
     error!("Couldn't acquire lock");
     Err(500)
+}
+
+#[cfg(test)]
+mod tests {
+    //These are only to support the state crate in testing. Could factor out
+    use web::{BlockchainState};
+    use lib::blockchain::Blockchain;
+
+    #[test]
+    fn mine() {
+        let mut blockchain = Blockchain::new_with(1);
+        let result = ::web::mine_impl(&mut blockchain);
+        assert!(result.is_ok(), format!("Failed to mine {:?}", result));
+        println!("mine response: {}", result.unwrap());
+    }
 }

@@ -32,6 +32,7 @@ fn main() {
     let rocket_config = Config::build(Environment::Production)
         .address("localhost")
         .port(args.port)
+        .finalize()
         .expect("Rocket config");
 
     //Start the API
