@@ -51,6 +51,7 @@ struct RegisterNodeResponse {
 
 pub fn init(rocket_config: Config, blockchain_state: BlockchainState) {
     rocket::custom(rocket_config, false)
+    //rocket::ignite()
         .manage(blockchain_state)
         .mount("/", routes![
     

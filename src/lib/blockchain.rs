@@ -31,6 +31,8 @@ pub struct Block {
 }
 
 impl Blockchain {
+
+    #[cfg(test)]
     pub fn new() -> Blockchain {
         Self::new_with(3)
     }

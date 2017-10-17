@@ -30,6 +30,7 @@ fn main() {
 
     //The web server setup
     let rocket_config = Config::build(Environment::Production)
+        .address("localhost")
         .port(args.port)
         .expect("Rocket config");
 
