@@ -1,6 +1,7 @@
 use serde_json;
 use std::collections::BTreeSet;
-use rocket::State;
+use rocket;
+use rocket::{Config, State};
 use lib::blockchain::*;
 use lib::consensus::Consensus;
 use lib::transaction::*;
@@ -13,9 +14,9 @@ pub struct BlockchainState {
 }
 
 impl BlockchainState {
-    pub fn new() -> BlockchainState {
+    pub fn new_with(difficulty: u64) -> BlockchainState {
         BlockchainState {
-            blockchain: RwLock::new(Blockchain::new())
+            blockchain: RwLock::new(Blockchain::new_with(difficulty))
         }
     }
 }
@@ -46,6 +47,20 @@ struct ChainResult<'a> {
 struct RegisterNodeResponse {
     message: String,
     total_nodes: usize
+}
+
+pub fn init(rocket_config: Config, blockchain_state: BlockchainState) {
+    rocket::custom(rocket_config, false)
+        .manage(blockchain_state)
+        .mount("/", routes![
+    
+            mine, 
+            new_transaction,
+            chain,
+            register_node,
+            consensus 
+            
+        ]).launch();
 }
 
 //todo: respone as JSON - https://github.com/SergioBenitez/Rocket/blob/v0.3.3/examples/json/src/main.rs
@@ -162,5 +177,3 @@ fn blockchain_op<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<
     error!("Couldn't acquire lock");
     Err(500)
 }
-
-

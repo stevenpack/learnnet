@@ -15,7 +15,8 @@ pub struct Blockchain {
     chain: Chain,
     //not a lot of sorted options in stdlib...
     current_transactions: BTreeSet<Transaction>,
-    nodes: HashSet<Url>
+    nodes: HashSet<Url>,
+    difficulty: u64
 }
 
 #[derive(Debug)]
@@ -31,10 +32,14 @@ pub struct Block {
 
 impl Blockchain {
     pub fn new() -> Blockchain {
+        Self::new_with(3)
+    }
+    pub fn new_with(difficulty: u64) -> Blockchain {
         let mut blockchain = Blockchain {
             chain: BTreeSet::new(),
             current_transactions: BTreeSet::new(),
-            nodes: HashSet::new()
+            nodes: HashSet::new(),
+            difficulty: difficulty
         };
         blockchain.new_block(100, String::from("Genesis block."));
         blockchain
@@ -124,10 +129,10 @@ impl Blockchain {
     ///Simple Proof of Work Algorithm:
     ///          - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
     ///          - p is the previous proof, and p' is the new proof
-    fn proof_of_work(last_proof: u64) -> u64 {
+    fn proof_of_work(last_proof: u64, difficulty: u64) -> u64 {
         info!("Mining from last_proof {}...", last_proof);
         let mut proof = 0;
-        while !Self::valid_proof(last_proof, proof) {
+        while !Self::valid_proof(last_proof, proof, difficulty) {
              proof += 1
         }
         debug!("Took {} iterations",proof);
@@ -136,11 +141,14 @@ impl Blockchain {
 
     /// Validates the Proof
     /// i.e. does the hash of last_proof and this proof start with 000?
-    fn valid_proof(last_proof: u64, proof: u64) -> bool {
+    fn valid_proof(last_proof: u64, proof: u64, difficulty: u64) -> bool {
         
+        //todo: don't recalculate every time
+        let hash_prefix = "0".repeat(difficulty as usize); //"000"
+
         let guess = format!("{}{}", last_proof, proof);
         let guess_hash =  self::hash_string(guess);
-        let is_valid = guess_hash.starts_with("000");
+        let is_valid = guess_hash.starts_with(hash_prefix.as_str());
         if is_valid {
             debug!("guess_hash: {}", guess_hash);
         }
@@ -151,7 +159,7 @@ impl Blockchain {
         let last_block = self.last_block();
         let last_proof = last_block.proof;
         //Mine it!
-        Self::proof_of_work(last_proof)
+        Self::proof_of_work(last_proof, self.difficulty)
     }
 
     fn hash_last_block(&self) -> String {
@@ -169,7 +177,7 @@ impl Blockchain {
         for block in chain {
             if let Some(previous_block) = previous_block_opt {
                 //Check the hash and proof
-                if !Self::check_hash(previous_block, block) || !Self::check_proof(previous_block, block) {
+                if !Self::check_hash(previous_block, block) || !Self::check_proof(previous_block, block, self.difficulty) {
                     return false;
                 }               
             }
@@ -187,8 +195,8 @@ impl Blockchain {
         true
     }
 
-    fn check_proof(previous_block: &Block, current_block: &Block) -> bool {
-        if !Self::valid_proof(previous_block.proof, current_block.proof) {                
+    fn check_proof(previous_block: &Block, current_block: &Block, difficulty: u64) -> bool {
+        if !Self::valid_proof(previous_block.proof, current_block.proof, difficulty) {                
             warn!("PROOF MISMATCH {} <> {}", previous_block.proof, current_block.proof);
             return false
         }
@@ -243,7 +251,7 @@ mod tests {
 
     #[test]
     fn valid_proof_false() {
-        assert_eq!(Blockchain::valid_proof(100,1), false);
+        assert_eq!(Blockchain::valid_proof(100,1, 3), false);
     }
     
     #[cfg(feature = "mining-tests")]    

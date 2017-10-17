@@ -16,13 +16,34 @@ extern crate clap;
 mod lib;
 mod web;
 
-use clap::{Arg, App, SubCommand};
-
+use clap::{Arg, App};
+use rocket::config::{Config, Environment};
 
 fn main() {
     env_logger::init().unwrap_or_else(|e| println!("Failed to init env_logger. {}", e));
     debug!("Started");
-    debug!("Parsing args...");
+    
+    let args = parse_args();
+
+    //The state wrapper that allows Rocket to access the underlying lib::Blockchain
+    let blockchain_state = web::BlockchainState::new_with(args.difficulty); 
+
+    //The web server setup
+    let rocket_config = Config::build(Environment::Production)
+        .port(args.port)
+        .expect("Rocket config");
+
+    //Start the API
+    web::init(rocket_config, blockchain_state);
+}
+
+struct Args {
+    port: u16,
+    difficulty: u64
+}
+
+fn parse_args() -> Args {
+debug!("Parsing args...");
 
     let matches = App::new("learnnet blockchain")
                           .version("0.1")
@@ -36,25 +57,18 @@ fn main() {
                           .arg(Arg::with_name("difficulty")
                                .short("d")
                                .long("difficulty")
-                               .help("Proof of work difficult. 3 would mean a hash starting with 000")
+                               .help("Proof of work difficulty. 3 would mean a hash starting with 000")
                                .takes_value(true))                         
                           .get_matches();
 
-    let port: u32 = matches.value_of("port").unwrap_or("8000").parse().expect("port must be valid integer");
-    let difficulty: u32 = matches.value_of("difficulty").unwrap_or("3").parse().expect("difficulty must be valid integer");
+    let port: u16 = matches.value_of("port").unwrap_or("8000").parse().expect("port must be valid integer");
+    let difficulty: u64 = matches.value_of("difficulty").unwrap_or("3").parse().expect("difficulty must be valid integer");
+
     info!("using port {}", port);
     info!("using difficulty {}", difficulty);
 
-    let config = web::BlockchainState::new(); 
-    rocket::ignite()
-    .manage(config)
-    .mount("/", routes![
-    
-        web::mine, 
-        web::new_transaction,
-        web::chain,
-        web::register_node,
-        web::consensus 
-        
-    ]).launch();
+    Args {
+        port: port,
+        difficulty: difficulty
+    }
 }

@@ -68,15 +68,14 @@ impl Consensus {
 #[cfg(test)]
 mod tests {    
     use lib::consensus::Consensus;
-    use url::Url;
     use env_logger;
     
     #[cfg(feature = "integration")]   
     #[test]
     fn get_neighbour_chains() {
         env_logger::init().unwrap();
-        let urls = [Url::parse("http://koalasafe.com").unwrap()];
-        Consensus::get(&urls);
+        let urls = vec![String::from("http://koalasafe.com")];
+        Consensus::get(urls.as_slice());
     }
 }
   
