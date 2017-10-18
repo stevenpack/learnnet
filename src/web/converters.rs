@@ -3,42 +3,40 @@ extern crate rocket;
 use web::NodeList;
 use lib::transaction::Transaction;
 use serde_json;
+use serde;
+use serde::Deserialize;
 use rocket::{Request, Data};
 use rocket::data::{self, FromData};
 use rocket::http::{Status};
 use rocket::Outcome::*;
+use std::fmt::Debug;
+
+fn deserialize<'a, T>(_: &Request, data: Data, type_name: String) -> data::Outcome<T, String>
+    where for<'de> T: serde::Deserialize<'de> + Debug {
+
+    let t: T = match serde_json::from_reader(data.open()) {
+        Ok(t) => t,
+        Err(e) => {
+            error!("Failed to deserialize {} {:?}", type_name, e);
+            return Failure((Status::BadRequest, format!("Couldn't parse {}", type_name)));
+        }
+    };
+    debug!("Successfully parsed {}. {:?}", type_name, t);
+    Success(t)
+}
+
 
 impl FromData for Transaction {
     type Error = String;
-
-    fn from_data(_: &Request, data: Data) -> data::Outcome<Self, String> {
-        
-        let transaction: Transaction = match serde_json::from_reader(data.open()) {
-            Ok(transaction) => transaction,
-            Err(e) => {
-                error!("Failed to deserialize transaction {:?}", e);
-                return Failure((Status::BadRequest, format!("Couldn't parse transaction")));
-            }
-        };
-        debug!("Successfully parsed transaction. {:?}", transaction);
-        Success(transaction)
+    fn from_data(req: &Request, data: Data) -> data::Outcome<Self, String> {        
+       deserialize(req, data, String::from("Transaction"))
     }
 }
 
 impl FromData for NodeList {
     type Error = String;
 
-    fn from_data(_: &Request, data: Data) -> data::Outcome<Self, String> {
-        
-        //Terser way to express?
-        let node_list: NodeList = match serde_json::from_reader(data.open()) {
-            Ok(node_list) => node_list,
-            Err(e) => {
-                error!("Failed to deserialize node_list {:?}", e);
-                return Failure((Status::BadRequest, format!("Couldn't parse node_list")));
-            }
-        };
-        debug!("Successfully parsed node_list");
-        Success(node_list)
+    fn from_data(req: &Request, data: Data) -> data::Outcome<Self, String> {        
+       deserialize(req, data, String::from("NodeList"))
     }
 }
