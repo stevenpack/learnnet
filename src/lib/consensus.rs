@@ -13,10 +13,7 @@ pub struct Consensus;
 impl Consensus {
 
     pub fn resolve_conflicts(blockchain: &mut Blockchain) -> bool {
-
-        let mut new_chain: Option<Chain> = None;
-        let mut max_length = blockchain.len();
-
+        
         let nodes: Vec<String> = blockchain
                                     .nodes()
                                     .iter()
@@ -25,19 +22,29 @@ impl Consensus {
                                     .collect();
         
         let neighbour_chains = Self::get(nodes.as_slice());
-        for chain in neighbour_chains {
+        Self::take_authoritive(blockchain, neighbour_chains)
+    }
+
+    fn take_authoritive(blockchain: &mut Blockchain, chains: Vec<Chain>) -> bool {
+        
+        let mut is_replaced = false;
+        let mut new_chain: Option<Chain> = None;
+        let mut max_length = blockchain.len();
+        
+        for chain in chains {
             if chain.len() > max_length && blockchain.valid_chain(&chain) {
                 max_length = chain.len();
                 new_chain = Some(chain);
             }
         }
-        let is_replaced = new_chain.is_some();
+        
         if let Some(longest_chain) = new_chain {
             blockchain.replace(longest_chain);
+            is_replaced = true;
         }
         is_replaced
     }
-
+   
     fn get(nodes: &[String]) -> Vec<Chain> {
         let chains_raw = Self::get_neighbour_chains(nodes);
         Self::deserialize(chains_raw)
@@ -74,6 +81,7 @@ impl Consensus {
 
 #[cfg(test)]
 mod tests {    
+    use lib::blockchain::Blockchain;
     use lib::consensus::Consensus;
     use env_logger;
     
@@ -83,6 +91,29 @@ mod tests {
         env_logger::init().unwrap();
         let urls = vec![String::from("http://koalasafe.com")];
         Consensus::get(urls.as_slice());
+    }
+
+    #[test]
+    fn take_authoritive() {
+        //Same or less blocks we keep our own. Longer we replace
+        let mut blockchain_1 = Blockchain::new_with(1);
+        let mut blockchain_2 = Blockchain::new_with(1);
+
+        blockchain_1.mine();
+        assert!(!Consensus::take_authoritive(&mut blockchain_1, vec![blockchain_2.into_chain()]), "1 block vs 0 blocks (don't replace)");
+        
+        blockchain_1 = Blockchain::new_with(1);
+        blockchain_2 = Blockchain::new_with(1);
+        blockchain_1.mine();        
+        blockchain_2.mine();
+        assert!(!Consensus::take_authoritive(&mut blockchain_1, vec![blockchain_2.into_chain()]), "1 block vs 1 blocks (don't replace)");
+       
+        blockchain_1 = Blockchain::new_with(1);
+        blockchain_2 = Blockchain::new_with(1);
+        blockchain_1.mine();        
+        blockchain_2.mine();
+        blockchain_2.mine();
+        assert!(Consensus::take_authoritive(&mut blockchain_1, vec![blockchain_2.into_chain()]), "1 block vs 2 blocks (replace)");
     }
 }
   

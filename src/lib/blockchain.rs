@@ -72,8 +72,12 @@ impl Blockchain {
         &mined_block
     }
 
-    pub fn chain(&self) -> &BTreeSet<Block> {
+    pub fn chain(&self) -> &Chain {
         &self.chain
+    }
+
+    pub fn into_chain(self) -> Chain {
+        self.chain
     }
 
     ///
