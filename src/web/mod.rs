@@ -8,6 +8,7 @@ use lib::transaction::*;
 use std::sync::{RwLock};
 use url::{Url};
 mod converters;
+use api;
 
 pub struct BlockchainState {
     pub blockchain: RwLock<Blockchain>
@@ -67,25 +68,9 @@ pub fn init(rocket_config: Config, blockchain_state: BlockchainState) {
 //todo: respone as JSON - https://github.com/SergioBenitez/Rocket/blob/v0.3.3/examples/json/src/main.rs
 #[get("/mine", format = "application/json")]
 pub fn mine(state: State<BlockchainState>) -> Result<String, u32> {
-    blockchain_op(&state, |b| mine_impl(b))
+    blockchain_op(&state, |b| api::mine(b))
 }
 
-//tood: to make testable... couldn't create Rocket::State, derived from state crate in tests
-fn mine_impl(b: &mut Blockchain) -> Result<String, u32> {
-     let mined_block = b.mine();
-    let response = MineResult {
-        message: "New Block Forged".into(),
-        index: mined_block.index,
-        transactions: mined_block.transactions.clone(),
-        proof: mined_block.proof,
-        previous_hash: mined_block.previous_hash.clone()
-    };
-
-    Ok(serde_json::to_string(&response).unwrap_or_else(|e| {
-        error!("serialize error: {:?}", e);
-        return String::from("Block mined, but details not available")
-    }))
-}
 
 #[post("/transaction/new", format = "application/json", data = "<transaction>")]
 pub fn new_transaction(transaction: Transaction, state: State<BlockchainState>) -> Result<String, u32> {
@@ -171,6 +156,7 @@ pub fn consensus(state: State<BlockchainState>) -> Result<String, u32> {
 /// 
 fn blockchain_op<F>(state: &State<BlockchainState>, blockchain_op: F) -> Result<String, u32> 
     where F: Fn(&mut Blockchain) -> Result<String, u32> {
+    
     let guard = state.blockchain.write();
     if guard.is_ok() {        
         let mut blockchain = guard.unwrap();
