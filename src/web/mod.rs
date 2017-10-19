@@ -20,7 +20,7 @@ impl BlockchainState {
 }
 
 //Requests
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct NodeList {
     nodes: Vec<String>
 }
