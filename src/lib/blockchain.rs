@@ -60,16 +60,16 @@ impl Blockchain {
     ///
     /// Mine a new block
     /// 
-   pub fn mine(&mut self) -> &Block {
+   pub fn mine(&mut self) -> Result<&Block, String> {
         // We run the proof of work algorithm to get the next proof...    
-        let new_block_proof = self.proof_of_work();
+        let new_block_proof = self.proof_of_work()?;
         //Got it. Give ourselves the new coin (block?)
         //The sender is "0" to signify that this node has mined a new coin.
         self.new_transaction(Transaction::new("0".into(), "my node address".into(), 1));
-        let previous_hash = self.hash_last_block();
+        let previous_hash = self.hash_last_block()?;
         //Forge the new Block by adding it to the chain
         let mined_block = self.new_block(new_block_proof, previous_hash);
-        &mined_block
+        Ok(&mined_block)
     }
 
     pub fn chain(&self) -> &Chain {
@@ -120,14 +120,15 @@ impl Blockchain {
     fn new_block(&mut self, proof: u64, previous_hash: String) -> &Block {
         let block = self.create_block(proof, previous_hash);
         self.chain.insert(block);
-        &self.chain.iter().next_back().expect("Just added element")
+        &self.chain.iter().next_back().expect("invariant: just added element")
     }
   
     fn last_block(&self) -> &Block {
         //it's a double-ended iterator, and it's sorted, so it should be fast
-        self.chain.iter().next_back().expect("Chain empty. Expected genesis block")
+        self.chain.iter().next_back().expect("invariant: Chain empty. Expected genesis block")
     }
 
+    //todo: get away from string errors
     fn hash(block: &Block) -> Result<String, String> {
        self::hash(block)
     }
@@ -138,19 +139,19 @@ impl Blockchain {
     /// Find a number p' (new proof) s. t. hash(pp'h) contains 4 leading zeroes, where p is the 
     /// previous proof and h is the hash of the previous block.      
     /// 
-    fn proof_of_work(&self) -> u64 {
+    fn proof_of_work(&self) -> Result<u64, String> {
         
         let last_block = self.last_block();
         let last_proof = last_block.proof;
 
         info!("Mining from last_proof {}...", last_proof);
         let mut proof = 0;
-        let previous_hash = self.hash_last_block();
+        let previous_hash = self.hash_last_block()?;
         while !Self::valid_proof(last_proof, proof, self.difficulty, &previous_hash) {
              proof += 1;
         }
         debug!("Took {} iterations", proof);
-        return proof
+        Ok(proof)
     }
 
     /// Validates the Proof
@@ -171,10 +172,9 @@ impl Blockchain {
         is_valid
     }
 
-    fn hash_last_block(&self) -> String {
+    fn hash_last_block(&self) -> Result<String, String> {
         let last_block = self.last_block();
-        //TODO: Don't panic here
-        Self::hash(last_block).expect("hash block failed")
+        Self::hash(last_block)
     }
 
     ///
@@ -197,7 +197,7 @@ impl Blockchain {
     }
 
     fn check_hash(previous_block: &Block, current_block: &Block) -> bool {
-        let previous_block_hash = Self::hash(previous_block).expect("//todo handle hash failure");
+        let previous_block_hash = Self::hash(previous_block).unwrap_or_else(|e| format!("hash failure: {}", e));
         if current_block.previous_hash != previous_block_hash {
             warn!("HASH MISMATCH {} <> {}", current_block.previous_hash, previous_block_hash);
             return false
@@ -206,7 +206,7 @@ impl Blockchain {
     }
 
     fn check_proof(previous_block: &Block, current_block: &Block, difficulty: u64) -> bool {
-        let previous_hash = Self::hash(previous_block).expect("todo: handle hash failure");
+        let previous_hash = Self::hash(previous_block).unwrap_or_else(|e| format!("hash failure: {}", e));
         if !Self::valid_proof(previous_block.proof, current_block.proof, difficulty, &previous_hash) {                
             warn!("PROOF MISMATCH {} <> {}", previous_block.proof, current_block.proof);
             return false
@@ -272,10 +272,10 @@ mod tests {
         let difficulty = 2;
         let blockchain = Blockchain::new_with(difficulty);     
         println!("Starting proof of work... (long running)");
-        let proof = blockchain.proof_of_work();
+        let proof = blockchain.proof_of_work().unwrap();
         println!("Finished proof of work: {}", proof);
         assert!(proof > 1, "expected a higher proof");
-        let previous_hash = blockchain.hash_last_block();
+        let previous_hash = blockchain.hash_last_block().unwrap();
         assert!(Blockchain::valid_proof(100, proof, difficulty, &previous_hash));
         assert!(!Blockchain::valid_proof(100, proof, difficulty, &String::from("invalid hash")));
     }
@@ -317,7 +317,7 @@ mod tests {
         let txn = Transaction::new(String::from("a"), String::from("b"), 100);
         blockchain.new_transaction(txn);
         //valid hash, invalid proof
-        let hash = blockchain.hash_last_block();
+        let hash = blockchain.hash_last_block().unwrap();
         blockchain.new_block(2, hash);
 
         assert!(!blockchain.valid_chain(&blockchain.chain), "blockchain not valid (proof mismatch)");

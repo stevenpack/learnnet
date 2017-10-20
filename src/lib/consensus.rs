@@ -53,14 +53,26 @@ impl Consensus {
     fn get_neighbour_chains(nodes: &[String]) -> Vec<String> {
         let mut chains = Vec::<String>::new();
         let client = Client::new();
-        //upgrade_todo: rayon or tokio-hyper to request async
+        //upgrade: rayon or tokio-hyper to request async
         for node in nodes {
             let url = format!("{}/chain", node);
-            let mut res = client.get(url.as_str()).send().expect("todo: handle");
-            if res.status() == StatusCode::Ok {
-                let mut buffer = String::new();
-                res.read_to_string(&mut buffer).expect("todo: handle");
-                chains.push(buffer);
+
+            match client.get(url.as_str()).send() {
+                Ok(mut res) => {
+                    if res.status() == StatusCode::Ok {
+                        let mut buffer = String::new();
+                        let bytes_read = res.read_to_string(&mut buffer).unwrap_or_else(|e| {
+                            error!("Couldnt' read buffer {}", e);
+                            return 0;
+                        });
+                        if bytes_read > 0 {
+                            chains.push(buffer);
+                        }                        
+                    } else {
+                        error!("Failed to get chain from {}. Response was {:?}. Ignoring", url, res)
+                    }
+                },
+                Err(e) => error!("Failed to get chain from {}. Error was {:?}. Ignoring", url, e)
             }
         }
         chains
@@ -69,7 +81,7 @@ impl Consensus {
     fn deserialize(chains_raw: Vec<String>) -> Vec<Chain> {
         let mut chains = Vec::<Chain>::new();
         for raw in chains_raw {
-            //todo: remove nodes who return invalid chains?
+            //upgrade: remove nodes who return invalid chains?
             match serde_json::from_str::<ChainResponse>(raw.as_str()) {
                 Ok(chain_res) => chains.push(chain_res.chain),
                 Err(e) => error!("Unable to deserialize chain {:?} raw: {}", e, raw)
