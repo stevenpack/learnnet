@@ -1,3 +1,4 @@
+use serde::Serialize;
 use serde_json;
 use std::collections::BTreeSet;
 use rocket;
@@ -85,17 +86,14 @@ pub fn new_transaction(transaction: Transaction, state: State<BlockchainState>) 
 pub fn chain(state: State<BlockchainState>) -> Result<String, u32> {
     blockchain_op(&state, |b| {
 
-            let chain = b.chain();
-            let response = ChainResult {
-              chain: chain,
-              length: chain.len()
-            };
+        let chain = b.chain();
+        let response = ChainResult {
+            chain: chain,
+            length: chain.len()
+        };
 
-            Ok(serde_json::to_string(&response).unwrap_or_else(|e| {
-                error!("serialize error: {:?}", e);
-                return String::from("Could not serialize chain.")
-            }))
-        })
+        serialize(&response)
+    })
 }
 
 #[post("/nodes/register", format = "application/json", data="<node_list>")]
@@ -106,13 +104,13 @@ pub fn register_node(node_list: NodeList, state: State<BlockchainState>) -> Resu
 
         //Validate - all or nothing
         for node in &node_list.nodes {
-           let parse_result = Url::parse(node);
-           if parse_result.is_err() {
-               warn!("Failed to parse {} {:?}", node, parse_result.err());
-               return Err(400, /* all nodes must be valid */)
+           match Url::parse(node) {
+               Ok(parse_result) => node_urls.push(parse_result),
+               Err(e) => {
+                warn!("Failed to parse {} {:?}", node, e);
+                return Err(400, /* all nodes must be valid */)
+               }
            }
-           let url = parse_result.expect("validated");
-           node_urls.push(url);
         }
 
         //Add
@@ -125,10 +123,7 @@ pub fn register_node(node_list: NodeList, state: State<BlockchainState>) -> Resu
             total_nodes: b.nodes().len(),
         };
 
-        Ok(serde_json::to_string(&response).unwrap_or_else(|e| {
-                error!("serialize error: {:?}", e);
-                return String::from("Could not serialize chain.")
-        }))       
+        serialize(&response)     
     })
 }
 
@@ -150,6 +145,16 @@ pub fn consensus(state: State<BlockchainState>) -> Result<String, u32> {
             }).to_string());
         }
     });
+}
+
+fn serialize<T>(response: &T) -> Result<String, u32> where T: Serialize {
+    match serde_json::to_string(&response) {
+        Ok(serialized) => Ok(serialized),
+        Err(e) => {
+            error!("serialize error: {:?}", e);
+            return Err(500); //include reason?
+        }
+    }
 }
 
 ///
