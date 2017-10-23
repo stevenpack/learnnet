@@ -3,6 +3,7 @@ use lib::transaction::*;
 use lib::consensus::*;
 use std::collections::BTreeSet;
 use serde_json;
+use serde::Serialize;
 use url::{Url};
 use web::NodeList;
 
@@ -30,7 +31,7 @@ struct RegisterNodeResponse {
 
 //tood: to make testable... couldn't create Rocket::State, derived from state crate in tests
 pub fn mine(b: &mut Blockchain) -> Result<String, u32> {
-    let mined_block = b.mine();
+    let mined_block = b.mine().expect("todo: map error to 500");
     let response = MineResult {
         message: "New Block Forged".into(),
         index: mined_block.index,
@@ -39,10 +40,7 @@ pub fn mine(b: &mut Blockchain) -> Result<String, u32> {
         previous_hash: mined_block.previous_hash.clone()
     };
 
-    Ok(serde_json::to_string(&response).unwrap_or_else(|e| {
-        error!("serialize error: {:?}", e);
-        return String::from("Block mined, but details not available")
-    }))
+   serialize(&response)
 }
 
 pub fn new_transaction(transaction: &Transaction, b: &mut Blockchain) -> Result<String, u32> {   
@@ -57,12 +55,7 @@ pub fn chain(b: &mut Blockchain) -> Result<String, u32> {
         chain: chain,
         length: chain.len()
     };
-
-    Ok(serde_json::to_string(&response).unwrap_or_else(|e| {
-        error!("serialize error: {:?}", e);
-        return String::from("Could not serialize chain.")
-    }))
-     
+    serialize(&response)     
 }
 
 pub fn register_node(node_list: &NodeList, b: &mut Blockchain) -> Result<String, u32> {
@@ -90,10 +83,7 @@ pub fn register_node(node_list: &NodeList, b: &mut Blockchain) -> Result<String,
         total_nodes: b.nodes().len(),
     };
 
-    Ok(serde_json::to_string(&response).unwrap_or_else(|e| {
-            error!("serialize error: {:?}", e);
-            return String::from("Could not serialize chain.")
-    }))       
+    serialize(&response)
 }
 
 pub fn consensus(b: &mut Blockchain) -> Result<String, u32> {
@@ -113,6 +103,16 @@ pub fn consensus(b: &mut Blockchain) -> Result<String, u32> {
         }).to_string());
     }
 
+}
+
+fn serialize<T>(response: &T) -> Result<String, u32> where T: Serialize {
+    match serde_json::to_string(&response) {
+        Ok(serialized) => Ok(serialized),
+        Err(e) => {
+            error!("serialize error: {:?}", e);
+            return Err(500); //include reason?
+        }
+    }
 }
 
 #[cfg(test)]

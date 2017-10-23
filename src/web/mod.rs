@@ -66,6 +66,8 @@ pub fn consensus(state: State<BlockchainState>) -> Result<String, u32> {
     blockchain_op(&state, |b| api::consensus(b))
 }
 
+
+
 ///
 /// Retrieves the blockchain from state, unlocks and executes the closure
 /// 
