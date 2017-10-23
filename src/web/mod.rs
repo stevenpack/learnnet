@@ -27,7 +27,6 @@ pub struct NodeList {
 
 pub fn init(rocket_config: Config, blockchain_state: BlockchainState) {
     rocket::custom(rocket_config, false)
-    //rocket::ignite()
         .manage(blockchain_state)
         .mount("/", routes![
     
@@ -65,8 +64,6 @@ pub fn register_node(node_list: NodeList, state: State<BlockchainState>) -> Resu
 pub fn consensus(state: State<BlockchainState>) -> Result<String, u32> {
     blockchain_op(&state, |b| api::consensus(b))
 }
-
-
 
 ///
 /// Retrieves the blockchain from state, unlocks and executes the closure
