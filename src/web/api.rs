@@ -29,18 +29,23 @@ struct RegisterNodeResponse {
     total_nodes: usize
 }
 
-//tood: to make testable... couldn't create Rocket::State, derived from state crate in tests
 pub fn mine(b: &mut Blockchain) -> Result<String, u32> {
-    let mined_block = b.mine().expect("todo: map error to 500");
-    let response = MineResult {
-        message: "New Block Forged".into(),
-        index: mined_block.index,
-        transactions: mined_block.transactions.clone(),
-        proof: mined_block.proof,
-        previous_hash: mined_block.previous_hash.clone()
-    };
-
-   serialize(&response)
+    match b.mine() {
+        Ok(mined_block) => {
+            let response = MineResult {
+                message: "New Block Forged".into(),
+                index: mined_block.index,
+                transactions: mined_block.transactions.clone(),
+                proof: mined_block.proof,
+                previous_hash: mined_block.previous_hash.clone()
+            };
+            serialize(&response)
+        },
+        Err(e) => {
+            error!("Failed to mind block. {:?}", e);
+            Err(500)
+        }
+    }    
 }
 
 pub fn new_transaction(transaction: &Transaction, b: &mut Blockchain) -> Result<String, u32> {   
