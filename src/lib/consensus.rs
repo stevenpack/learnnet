@@ -95,14 +95,15 @@ impl Consensus {
 mod tests {    
     use lib::blockchain::Blockchain;
     use lib::consensus::Consensus;
-    use env_logger;
+    //use env_logger;
     
     #[cfg(feature = "integration")]   
     #[test]
     fn get_neighbour_chains() {
-        env_logger::init().unwrap();
-        let urls = vec![String::from("http://koalasafe.com")];
-        Consensus::get(urls.as_slice());
+        //env_logger::init().unwrap();
+        let urls = vec![String::from("http://localhost:8000")];
+        let chains = Consensus::get(urls.as_slice());
+        assert!(chains.len() > 0, "expected a populated chain");
     }
 
     #[test]
@@ -111,20 +112,20 @@ mod tests {
         let mut blockchain_1 = Blockchain::new_with(1);
         let mut blockchain_2 = Blockchain::new_with(1);
 
-        blockchain_1.mine();
+        blockchain_1.mine().unwrap();
         assert!(!Consensus::take_authoritive(&mut blockchain_1, vec![blockchain_2.into_chain()]), "1 block vs 0 blocks (don't replace)");
         
         blockchain_1 = Blockchain::new_with(1);
         blockchain_2 = Blockchain::new_with(1);
-        blockchain_1.mine();        
-        blockchain_2.mine();
+        blockchain_1.mine().unwrap();        
+        blockchain_2.mine().unwrap();
         assert!(!Consensus::take_authoritive(&mut blockchain_1, vec![blockchain_2.into_chain()]), "1 block vs 1 blocks (don't replace)");
        
         blockchain_1 = Blockchain::new_with(1);
         blockchain_2 = Blockchain::new_with(1);
-        blockchain_1.mine();        
-        blockchain_2.mine();
-        blockchain_2.mine();
+        blockchain_1.mine().unwrap();        
+        blockchain_2.mine().unwrap();
+        blockchain_2.mine().unwrap();
         assert!(Consensus::take_authoritive(&mut blockchain_1, vec![blockchain_2.into_chain()]), "1 block vs 2 blocks (replace)");
     }
 }

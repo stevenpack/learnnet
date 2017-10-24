@@ -217,7 +217,7 @@ impl Blockchain {
 
 #[cfg(test)]
 mod tests {
-    use env_logger;
+    //use env_logger;
     use lib::blockchain::Blockchain;
     use lib::transaction::Transaction;
     use url::Url;
@@ -326,7 +326,7 @@ mod tests {
     #[test]
     #[cfg(feature = "mining-tests")]    
     fn valid_chain_ok() {
-        env_logger::init().unwrap();
+        //env_logger::init().unwrap();
         let mut blockchain = Blockchain::new();
         let txn = Transaction::new(String::from("a"), String::from("b"), 100);
         blockchain.new_transaction(txn);

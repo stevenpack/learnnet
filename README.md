@@ -4,6 +4,12 @@ Inspired by [https://hackernoon.com/learn-blockchains-by-building-one-117428612f
 
 For my own learning purposes, but could be fun to stand it up somewhere publicly and make it a blockchain learning experiment for others... more to come.
 
+Shows example of  
+- Simple web server for API (Rocket)
+- Client HTTP using reqwest crate
+- 
+
+
 ###Dependenies
 - [Rust nightly](https://rustup.rs/)
 - [optional] [Just](https://crates.io/crates/just) (rust make-like command runner)  
