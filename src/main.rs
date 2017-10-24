@@ -1,11 +1,11 @@
 #![feature(plugin, decl_macro)]
 #![plugin(rocket_codegen)]
 extern crate rocket;
-#[macro_use] extern crate serde_derive;
-extern crate chrono;
 extern crate serde;
+#[macro_use] extern crate serde_derive;
 #[macro_use] extern crate serde_json;
 #[macro_use] extern crate log;
+extern crate chrono;
 extern crate env_logger;
 extern crate sha2;
 extern crate base64;
@@ -30,7 +30,9 @@ fn main() {
 
     //The web server setup
     let rocket_config = Config::build(Environment::Production)
+        .address("localhost")
         .port(args.port)
+        .finalize()
         .expect("Rocket config");
 
     //Start the API
@@ -43,7 +45,7 @@ struct Args {
 }
 
 fn parse_args() -> Args {
-debug!("Parsing args...");
+    debug!("Parsing args...");
 
     let matches = App::new("learnnet blockchain")
                           .version("0.1")
