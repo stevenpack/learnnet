@@ -28,19 +28,11 @@ fn main() {
     //The state wrapper that allows Rocket to access the underlying lib::Blockchain
     let blockchain_state = web::BlockchainState::new_with(args.difficulty); 
 
-    //The web server setup
-    let rocket_config = Config::build(Environment::Production)
-        .address("localhost")
-        .port(args.port)
-        .finalize()
-        .expect("Rocket config");
-
     //Start the API
-    web::init(rocket_config, blockchain_state);
+    web::init(blockchain_state);
 }
 
 struct Args {
-    port: u16,
     difficulty: u64
 }
 
@@ -50,12 +42,7 @@ fn parse_args() -> Args {
     let matches = App::new("learnnet blockchain")
                           .version("0.1")
                           .author("Steven P. <steven.pack.code@gmail.com>")
-                          .about("Learn the blockchain! Inspired by https://github.com/dvf/blockchain")
-                          .arg(Arg::with_name("port")
-                               .short("p")
-                               .long("port")
-                               .help("Web server port")
-                               .takes_value(true))
+                          .about("Learn the blockchain! Inspired by https://github.com/dvf/blockchain")                         
                           .arg(Arg::with_name("difficulty")
                                .short("d")
                                .long("difficulty")
@@ -63,14 +50,11 @@ fn parse_args() -> Args {
                                .takes_value(true))                         
                           .get_matches();
 
-    let port: u16 = matches.value_of("port").unwrap_or("8000").parse().expect("port must be valid integer");
-    let difficulty: u64 = matches.value_of("difficulty").unwrap_or("3").parse().expect("difficulty must be valid integer");
+     let difficulty: u64 = matches.value_of("difficulty").unwrap_or("3").parse().expect("difficulty must be valid integer");
 
-    info!("using port {}", port);
     info!("using difficulty {}", difficulty);
 
     Args {
-        port: port,
         difficulty: difficulty
     }
 }

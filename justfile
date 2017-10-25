@@ -13,5 +13,5 @@ test-int:
 test-mine:
      cargo test --no-default-features --features mining-tests
 
-run port='8000':
-    RUST_LOG=debug cargo run -- -p={{port}} 
+run env='dev':
+    ROCKET_ENV={{env}} RUST_LOG=info cargo run

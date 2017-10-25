@@ -25,8 +25,8 @@ pub struct NodeList {
     nodes: Vec<String>
 }
 
-pub fn init(rocket_config: Config, blockchain_state: BlockchainState) {
-    rocket::custom(rocket_config, false)
+pub fn init(blockchain_state: BlockchainState) {
+    rocket::ignite()
         .manage(blockchain_state)
         .mount("/", routes![
     
