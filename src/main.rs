@@ -21,6 +21,10 @@ use clap::{Arg, App};
 ///
 /// Entry point. Starts logger, parses command line args and starts the web api
 /// 
+/// Note: The impl doesn't really make sense yet. Transactions can be added by anyone
+///       and there is no communication between nodes (such as queued transactions),
+///       only during consensus. It will be fleshed out in time.
+/// 
 fn main() {
     env_logger::init().unwrap_or_else(|e| println!("Failed to init env_logger. {}", e));
     debug!("Started");
@@ -55,7 +59,7 @@ fn parse_args() -> Args {
                                .takes_value(true))                         
                           .get_matches();
 
-     let difficulty: u64 = matches.value_of("difficulty").unwrap_or("3").parse().expect("difficulty must be valid integer");
+    let difficulty: u64 = matches.value_of("difficulty").unwrap_or("3").parse().expect("difficulty must be valid integer");
 
     info!("using difficulty {}", difficulty);
 

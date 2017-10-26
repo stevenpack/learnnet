@@ -26,8 +26,6 @@ impl BlockchainState {
     }
 }
 
-
-
 ///
 /// Start Rocket
 /// 

@@ -10,6 +10,14 @@ use url::{Url};
 
 pub type Chain = BTreeSet<Block>;
 
+///
+/// The representation of a block chain.
+/// 
+/// chain: An ordered set of `Block`s
+/// nodes: Other nodes in the network
+/// current_transactions: Transactions that will be added to the next block
+/// difficulty: Mining difficulty 3=hashes that start with '000'
+/// 
 #[derive(Debug)]
 pub struct Blockchain {
     chain: Chain,
