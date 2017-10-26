@@ -27,6 +27,9 @@ pub struct Blockchain {
     difficulty: u64
 }
 
+///
+/// Represents a `Block` on the chain.
+/// 
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
@@ -80,6 +83,9 @@ impl Blockchain {
         Ok(&mined_block)
     }
 
+    ///
+    /// Returns the `Chain`
+    /// 
     pub fn chain(&self) -> &Chain {
         &self.chain
     }
@@ -96,14 +102,23 @@ impl Blockchain {
         self.nodes.insert(address)
     }
 
+    ///
+    /// Returns the other nodes in the network
+    /// 
     pub fn nodes(&self) -> &HashSet<Url> {
         &self.nodes
     }
 
+    ///
+    /// Replace our chain with a new one (such as during consensus)
+    /// 
     pub fn replace(&mut self, new_chain: Chain) {
         self.chain = new_chain;
     }
 
+    ///
+    /// Number of blocks in the chain
+    /// 
     pub fn len(&self) -> usize {
         self.chain.len()
     }
@@ -131,6 +146,9 @@ impl Blockchain {
         &self.chain.iter().next_back().expect("invariant: just added element")
     }
   
+    ///
+    /// The last mined block
+    /// 
     fn last_block(&self) -> &Block {
         //it's a double-ended iterator, and it's sorted, so it should be fast
         self.chain.iter().next_back().expect("invariant: Chain empty. Expected genesis block")
