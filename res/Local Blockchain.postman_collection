@@ -1,0 +1,84 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Local Blockchain",
+		"_postman_id": "bd5f846e-4716-a946-48e3-b66d433bc611",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "post transaction",
+			"request": {
+				"url": "http://{{host}}:{{port}}/transaction/new",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"sender\": \"some address interacting with {{port}}\",\n\t\"recipient\": \"some other address\",\n\t\"amount\": 222\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "mine",
+			"request": {
+				"url": "http://{{host}}:{{port}}/mine",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "chain",
+			"request": {
+				"url": "http://{{host}}:{{port}}/chain",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "resolve nodes",
+			"request": {
+				"url": "http://{{host}}:{{port}}/nodes/resolve",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "register node",
+			"request": {
+				"url": "http://{{host}}:{{port}}/nodes/register",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"nodes\": [\"http://localhost:8001\"]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
