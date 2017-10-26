@@ -1,6 +1,6 @@
 extern crate rocket;
 
-use web::NodeList;
+use web::types::*;
 use lib::transaction::Transaction;
 use serde_json;
 use serde;

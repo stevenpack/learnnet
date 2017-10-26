@@ -17,8 +17,10 @@ mod lib;
 mod web;
 
 use clap::{Arg, App};
-use rocket::config::{Config, Environment};
 
+///
+/// Entry point. Starts logger, parses command line args and starts the web api
+/// 
 fn main() {
     env_logger::init().unwrap_or_else(|e| println!("Failed to init env_logger. {}", e));
     debug!("Started");
@@ -32,6 +34,9 @@ fn main() {
     web::init(blockchain_state);
 }
 
+///
+/// The supported command line arguments
+/// 
 struct Args {
     difficulty: u64
 }

@@ -1,33 +1,11 @@
 use lib::blockchain::*;
 use lib::transaction::*;
 use lib::consensus::*;
-use std::collections::BTreeSet;
 use serde_json;
 use serde::Serialize;
 use url::{Url};
-use web::NodeList;
+use web::types::*;
 
-//Responses
-#[derive(Serialize)]
-struct MineResult {
-    message: String,
-    index: usize,
-    transactions: BTreeSet<Transaction>,
-    proof: u64,
-    previous_hash: String
-}
-
-#[derive(Serialize)]
-struct ChainResult<'a> {
-    chain: &'a BTreeSet<Block>,
-    length: usize
-}
-
-#[derive(Serialize)]
-struct RegisterNodeResponse {
-    message: String,
-    total_nodes: usize
-}
 
 pub fn mine(b: &mut Blockchain) -> Result<String, u32> {
     match b.mine() {
@@ -53,7 +31,7 @@ pub fn new_transaction(transaction: &Transaction, b: &mut Blockchain) -> Result<
     Ok(format!("Transaction added at block {}", index))
 }
 
-pub fn chain(b: &mut Blockchain) -> Result<String, u32> {
+pub fn chain(b: &Blockchain) -> Result<String, u32> {
     
     let chain = b.chain();
     let response = ChainResult {
