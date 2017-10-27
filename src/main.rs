@@ -6,7 +6,8 @@ extern crate serde;
 #[macro_use] extern crate serde_json;
 #[macro_use] extern crate log;
 extern crate chrono;
-extern crate env_logger;
+//extern crate env_logger;
+extern crate log4rs;
 extern crate sha2;
 extern crate base64;
 extern crate url;
@@ -26,7 +27,8 @@ use clap::{Arg, App};
 ///       only during consensus. It will be fleshed out in time.
 /// 
 fn main() {
-    env_logger::init().unwrap_or_else(|e| println!("Failed to init env_logger. {}", e));
+    //env_logger::init().unwrap_or_else(|e| println!("Failed to init env_logger. {}", e));
+    log4rs::init_file("log4rs.yml", Default::default()).unwrap_or_else(|e| println!("Failed to init log4rs. {}", e));
     debug!("Started");
     
     let args = parse_args();
