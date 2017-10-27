@@ -40,3 +40,10 @@ pub struct RegisterNodeResponse {
     pub message: String,
     pub total_nodes: usize
 }
+
+#[derive(Serialize)]
+pub struct ConsensusReponse<'a> {
+    pub message: String,
+    pub chain: Option<&'a Chain>,
+    pub new_chain: Option<&'a Chain>
+}

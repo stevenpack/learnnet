@@ -28,7 +28,6 @@ Then, use Postman or similar interact.
 ## TODO
 
 - Return JSON<T> with application/json content-type
-- File logging
 - Node list, pull from Github on startup? Store as A records?
 
 

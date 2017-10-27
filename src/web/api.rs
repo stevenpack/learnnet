@@ -9,21 +9,19 @@ use web::types::*;
 ///
 /// Mine a new block
 /// 
-pub fn mine(b: &mut Blockchain) -> Result<String, u32> {
+pub fn mine(b: &mut Blockchain) -> Result<MineResult, String> {
     match b.mine() {
         Ok(mined_block) => {
-            let response = MineResult {
+            Ok(MineResult {
                 message: "New Block Forged".into(),
                 index: mined_block.index,
                 transactions: mined_block.transactions.clone(),
                 proof: mined_block.proof,
                 previous_hash: mined_block.previous_hash.clone()
-            };
-            serialize(&response)
+            })
         },
         Err(e) => {
-            error!("Failed to mind block. {:?}", e);
-            Err(500)
+            Err(format!("Failed to mind block. {:?}", e))
         }
     }    
 }
@@ -33,28 +31,27 @@ pub fn mine(b: &mut Blockchain) -> Result<String, u32> {
 /// 
 /// # Returns the index of the next block.
 /// 
-pub fn new_transaction(transaction: &Transaction, b: &mut Blockchain) -> Result<String, u32> {   
+pub fn new_transaction(transaction: &Transaction, b: &mut Blockchain) -> String {   
     let index = b.new_transaction(transaction.clone());
-    Ok(format!("Transaction added at block {}", index))
+    format!("Transaction added at block {}", index)
 }
 
 ///
 /// Return the whole blockchain (but not any pending transactions)
 /// 
-pub fn chain(b: &Blockchain) -> Result<String, u32> {
+pub fn chain(b: &Blockchain) -> ChainResult {
     
     let chain = b.chain();
-    let response = ChainResult {
+    ChainResult {
         chain: chain,
         length: chain.len()
-    };
-    serialize(&response)     
+    }
 }
 
 ///
 /// Add a new node to be called during conensus (conflict resolution)
 /// 
-pub fn register_node(node_list: &NodeList, b: &mut Blockchain) -> Result<String, u32> {
+pub fn register_node(node_list: &NodeList, b: &mut Blockchain) -> Result<RegisterNodeResponse, String> {
    
     let mut node_urls = Vec::<Url>::with_capacity(node_list.nodes.len());
 
@@ -63,7 +60,7 @@ pub fn register_node(node_list: &NodeList, b: &mut Blockchain) -> Result<String,
         let parse_result = Url::parse(node);
         if parse_result.is_err() {
             warn!("Failed to parse {} {:?}", node, parse_result.err());
-            return Err(400, /* all nodes must be valid */)
+            return Err(String::from("Failed to parse at least one node. All nodes must be valid"));
         }
         let url = parse_result.expect("validated");
         node_urls.push(url);
@@ -74,43 +71,32 @@ pub fn register_node(node_list: &NodeList, b: &mut Blockchain) -> Result<String,
         b.register_node(node_url);
     }      
 
-    let response = RegisterNodeResponse {
+    Ok(RegisterNodeResponse {
         message: String::from("New nodes have been added"),
         total_nodes: b.nodes().len(),
-    };
-
-    serialize(&response)
+    })
 }
 
 ///
 /// Determine which node has the longest blockchain, and replace with that
 /// if it's not ours
 /// 
-pub fn consensus(b: &mut Blockchain) -> Result<String, u32> {
+pub fn consensus(b: &mut Blockchain) -> ConsensusReponse {
 
     let replaced = Consensus::resolve_conflicts(b);
     if replaced {
-        return Ok(json!({
-            "message": "Our chain was replaced",
-            "new_chain": b.chain()
-        }).to_string());
+        ConsensusReponse {
+            message: String::from("Our chain was replaced"),
+            chain: None,
+            new_chain: Some(b.chain())
+        }
     }
     else
     {
-        return Ok(json!({
-            "message": "Our chain is authoritative",
-            "chain": b.chain()
-        }).to_string());
-    }
-
-}
-
-fn serialize<T>(response: &T) -> Result<String, u32> where T: Serialize {
-    match serde_json::to_string(&response) {
-        Ok(serialized) => Ok(serialized),
-        Err(e) => {
-            error!("serialize error: {:?}", e);
-            return Err(500); //include reason?
+         ConsensusReponse {
+            message: String::from("Our chain is authoritative"),
+            chain: Some(b.chain()),
+            new_chain: None
         }
     }
 }
