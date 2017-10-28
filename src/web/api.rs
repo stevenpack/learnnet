@@ -1,8 +1,6 @@
 use lib::blockchain::*;
 use lib::transaction::*;
 use lib::consensus::*;
-use serde_json;
-use serde::Serialize;
 use url::{Url};
 use web::types::*;
 
@@ -20,9 +18,7 @@ pub fn mine(b: &mut Blockchain) -> Result<MineResult, String> {
                 previous_hash: mined_block.previous_hash.clone()
             })
         },
-        Err(e) => {
-            Err(format!("Failed to mind block. {:?}", e))
-        }
+        Err(e) => Err(format!("Failed to mind block. {:?}", e))
     }    
 }
 
@@ -39,8 +35,7 @@ pub fn new_transaction(transaction: &Transaction, b: &mut Blockchain) -> String 
 ///
 /// Return the whole blockchain (but not any pending transactions)
 /// 
-pub fn chain(b: &Blockchain) -> ChainResult {
-    
+pub fn chain(b: &Blockchain) -> ChainResult {    
     let chain = b.chain();
     ChainResult {
         chain: chain,
