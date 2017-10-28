@@ -101,9 +101,10 @@ mod tests {
     #[test]
     fn get_neighbour_chains() {
         //env_logger::init().unwrap();
-        let urls = vec![String::from("http://localhost:8000")];
+        let url = "http://localhost:8000";
+        let urls = vec![String::from(url)];
         let chains = Consensus::get(urls.as_slice());
-        assert!(chains.len() > 0, "expected a populated chain");
+        assert!(chains.len() > 0, format!("expected a populated chain. do you have a node running at {} ?", url));
     }
 
     #[test]

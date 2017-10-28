@@ -63,7 +63,7 @@ pub fn mine(state: State<BlockchainState>) -> JsonResult {
      match state.blockchain.write() {
         Ok(mut blockchain) => match api::mine(&mut blockchain) {
             Ok(result) => to_json_result(result),
-            Err(e) => Err(500)
+            Err(_) => Err(500)
         }
         Err(e) => no_read_lock(e)
     }   

@@ -14,7 +14,7 @@ pub struct NodeList {
 ///
 /// Strongly typed response for mining
 /// 
-#[derive(Serialize)]
+#[derive(Debug,Serialize)]
 pub struct MineResult {
     pub message: String,
     pub index: usize,

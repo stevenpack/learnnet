@@ -106,6 +106,6 @@ mod tests {
         let mut blockchain = Blockchain::new_with(1);
         let result = api::mine(&mut blockchain);
         assert!(result.is_ok(), format!("Failed to mine {:?}", result));
-        println!("mine response: {}", result.unwrap());
+        println!("mine response: {:?}", result.unwrap());
     }
 }

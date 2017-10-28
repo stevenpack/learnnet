@@ -357,7 +357,7 @@ mod tests {
         let txn = Transaction::new(String::from("a"), String::from("b"), 100);
         blockchain.new_transaction(txn);
         //valid hash, invalid proof
-        blockchain.mine();
+        blockchain.mine().unwrap();
         assert!(blockchain.valid_chain(&blockchain.chain), "blockchain should be valid with a mined block");
     }    
 }
