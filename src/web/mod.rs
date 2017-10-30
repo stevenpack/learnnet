@@ -91,7 +91,10 @@ pub fn register_node(node_list: NodeList, state: State<BlockchainState>) -> Json
         Ok(mut blockchain) => {
             match api::register_node(&node_list, &mut blockchain) {
                 Ok(response) => to_json_result(response),
-                Err(_) => Err(400)
+                Err(e) => { 
+                    error!("Failed to add node. {}", e);
+                    Err(400) 
+                }
             }
         },
         Err(e) => no_write_lock(e)
